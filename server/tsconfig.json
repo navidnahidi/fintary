@@ -26,7 +26,7 @@
   },
   "include": [
     "src/**/*"
-  ],
+, "server/database.ts", "server/index.ts", "server/insertSampleData.ts", "server/migrate.ts", "server/orderMatcher.ts", "server/runMatcher.ts", "server/types.ts"  ],
   "exclude": [
     "node_modules",
     "dist"
