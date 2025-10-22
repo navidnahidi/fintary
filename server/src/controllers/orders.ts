@@ -8,7 +8,7 @@ export class OrdersController {
    */
   async getOrders(page: number = 1, limit: number = 10) {
     const result = await db.getOrders(page, limit);
-    
+
     // Format orders for API response
     const formattedOrders: Order[] = result.orders.map(row => ({
       id: row.id,
@@ -43,7 +43,7 @@ export class OrdersController {
     }
 
     console.log(`📊 Bulk inserting ${orders.length} orders`);
-    
+
     const result = await db.bulkInsertOrders(orders);
 
     return {

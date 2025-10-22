@@ -7,7 +7,7 @@ export class TransactionsController {
    */
   async getTransactions() {
     const transactions = await db.getTransactions();
-    
+
     // Format transactions for API response
     const formattedTransactions = transactions.map(row => ({
       id: row.id,
@@ -37,7 +37,7 @@ export class TransactionsController {
     }
 
     console.log(`📊 Bulk inserting ${transactions.length} transactions`);
-    
+
     const result = await db.bulkInsertTransactions(transactions);
 
     return {
