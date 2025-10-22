@@ -44,36 +44,52 @@ function ResultsTab({ matchingResult, isLoading }: ResultsTabProps) {
         </div>
       </div>
 
-      {/* Matched Orders */}
+      {/* Matched Orders with Transactions */}
       {matchingResult.matched.length > 0 && (
         <div className="results-section">
-          <h4>Matched Orders</h4>
-          <div className="table-container">
-            <table className="results-table">
-              <thead>
-                <tr>
-                  <th>Order ID</th>
-                  <th>Customer</th>
-                  <th>Item</th>
-                  <th>Price</th>
-                  <th>Match Score</th>
-                  <th>Transactions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {matchingResult.matched.map((match, index) => (
-                  <tr key={index}>
-                    <td>{match.order.orderId}</td>
-                    <td>{match.order.customer}</td>
-                    <td>{match.order.item}</td>
-                    <td>${(match.order.priceCents / 100).toFixed(2)}</td>
-                    <td>{(match.matchScore * 100).toFixed(1)}%</td>
-                    <td>{match.txns.length}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <h4>Matched Orders with Transactions</h4>
+          {matchingResult.matched.map((match, index) => (
+            <div key={index} className="matched-order-group">
+              <div className="order-header">
+                <h5>Order: {match.order.orderId} - {match.order.customer}</h5>
+                <div className="order-details">
+                  <span>Item: {match.order.item}</span>
+                  <span>Price: ${(match.order.priceCents / 100).toFixed(2)}</span>
+                  <span>Match Score: {(match.matchScore * 100).toFixed(1)}%</span>
+                </div>
+              </div>
+              
+              <div className="transactions-list">
+                <h6>Associated Transactions ({match.txns.length}):</h6>
+                <div className="table-container">
+                  <table className="results-table">
+                    <thead>
+                      <tr>
+                        <th>Order ID</th>
+                        <th>Customer</th>
+                        <th>Item</th>
+                        <th>Type</th>
+                        <th>Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {match.txns.map((txn, txnIndex) => (
+                        <tr key={txnIndex}>
+                          <td>{txn.orderId}</td>
+                          <td>{txn.customer}</td>
+                          <td>{txn.item}</td>
+                          <td>{txn.txnType}</td>
+                          <td style={{ color: txn.txnAmountCents < 0 ? 'red' : 'green' }}>
+                            ${(txn.txnAmountCents / 100).toFixed(2)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
@@ -138,6 +154,7 @@ function ResultsTab({ matchingResult, isLoading }: ResultsTabProps) {
           </div>
         </div>
       )}
+
     </div>
   )
 }

@@ -22,7 +22,6 @@ function OrdersTab() {
       
       try {
         const response: OrdersResponse = await orderActions.fetchOrders(ordersPagination.page, ordersPagination.limit)
-        console.log('API Response:', response) // Debug log
         
         if (!response || !response.data) {
           throw new Error('Invalid response structure')
@@ -69,7 +68,15 @@ function OrdersTab() {
       try {
         const response: OrdersResponse = await orderActions.fetchOrders(ordersPagination.page, ordersPagination.limit)
         setOrders(response.data)
-        setOrdersPagination(response.pagination)
+        
+        if (response.pagination) {
+          setOrdersPagination({
+            page: response.pagination.page,
+            limit: response.pagination.limit,
+            total: response.pagination.totalCount,
+            totalPages: response.pagination.totalPages
+          })
+        }
       } catch (error) {
         setOrdersError(error instanceof Error ? error.message : 'Failed to fetch orders')
         console.error('Error fetching orders:', error)

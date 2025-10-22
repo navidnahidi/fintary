@@ -6,6 +6,13 @@ export interface MigrationFile {
   content: string;
 }
 
+export interface MigrationRow {
+  migration_name: string;
+  executed_at: string;
+  checksum: string;
+  execution_time_ms: number;
+}
+
 export interface MigrationResult {
   success: boolean;
   message: string;

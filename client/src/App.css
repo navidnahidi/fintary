@@ -435,3 +435,59 @@ body {
   margin: 0.5rem 0 0 0;
   overflow-x: auto;
 }
+
+/* Matching help text */
+.matching-help {
+  margin-top: 0.5rem;
+  color: #6c757d;
+  font-size: 0.9rem;
+  text-align: center;
+  font-style: italic;
+}
+
+/* Matched order group styles */
+.matched-order-group {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+.order-header {
+  background: #e9ecef;
+  padding: 15px 20px;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.order-header h5 {
+  margin: 0 0 10px 0;
+  color: #495057;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.order-details {
+  display: flex;
+  gap: 20px;
+  font-size: 14px;
+  color: #6c757d;
+}
+
+.order-details span {
+  background: #ffffff;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+}
+
+.transactions-list {
+  padding: 20px;
+}
+
+.transactions-list h6 {
+  margin: 0 0 15px 0;
+  color: #495057;
+  font-size: 14px;
+  font-weight: 600;
+}

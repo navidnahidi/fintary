@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import OrdersTab from './OrdersTab'
 import TransactionsTab from './TransactionsTab'
 import ResultsTab from './ResultsTab'
@@ -9,35 +9,38 @@ function Content() {
   const [activeTab, setActiveTab] = useState<'orders' | 'transactions' | 'results'>('orders')
   const [matchingResult, setMatchingResult] = useState<MatchingResult | null>(null)
   const [isMatching, setIsMatching] = useState(false)
+  const [hasTransactions, setHasTransactions] = useState(false)
+  const [localTransactions, setLocalTransactions] = useState<Transaction[]>([])
+
+  // Function to refresh transaction status (called from TransactionsTab)
+  const refreshTransactionStatus = () => {
+    setHasTransactions(localTransactions.length > 0)
+  }
+
+  // Update hasTransactions when localTransactions changes
+  useEffect(() => {
+    setHasTransactions(localTransactions.length > 0)
+  }, [localTransactions])
 
   const handleRunMatching = async () => {
     setIsMatching(true)
     
-    // Use the stubbed transactions from TransactionsTab
-    const transactions: Transaction[] = [
-      {customer: 'Alexis Abe', orderId: '1B6', date: '2023-07-12', item: 'Tool A', priceCents: 123, txnType: 'payment', txnAmountCents: 123},
-      {customer: 'Alex Able', orderId: 'I8G', date: '2023-07-13', item: 'Tool A', priceCents: 123, txnType: 'refund', txnAmountCents: -123},
-      {customer: 'Brian Ball', orderId: 'ZOS', date: '2023-08-11', item: 'Toy B', priceCents: 321, txnType: 'payment-1', txnAmountCents: 121},
-      {customer: 'Bryan', orderId: '705', date: '2023-08-13', item: 'Toy B', priceCents: 321, txnType: 'payment-2', txnAmountCents: 200},
-    ]
-
     try {
-      const result = await matchingActions.runMatching(transactions)
-      setMatchingResult(result)
+      // Use locally stored transactions instead of fetching from server
+      const transactions = localTransactions
+
+      const matchingResult = await matchingActions.runMatching(transactions)
+      setMatchingResult(matchingResult)
       setActiveTab('results')
     } catch (error) {
       console.error('Error running matching:', error)
-      // For now, show a mock result if API fails
-      const mockResult: MatchingResult = {
+      // Show error result
+      const errorResult: MatchingResult = {
         matched: [],
         unmatchedOrders: [],
-        unmatchedTransactions: transactions.map(txn => ({
-          ...txn,
-          id: Math.random(),
-          matchedOrderId: undefined
-        }))
+        unmatchedTransactions: []
       }
-      setMatchingResult(mockResult)
+      setMatchingResult(errorResult)
       setActiveTab('results')
     } finally {
       setIsMatching(false)
@@ -71,7 +74,13 @@ function Content() {
       <div className="tab-content">
         {activeTab === 'orders' && <OrdersTab />}
         
-        {activeTab === 'transactions' && <TransactionsTab />}
+        {activeTab === 'transactions' && (
+          <TransactionsTab 
+            onTransactionsUploaded={refreshTransactionStatus}
+            transactions={localTransactions}
+            setTransactions={setLocalTransactions}
+          />
+        )}
         
         {activeTab === 'results' && (
           <ResultsTab 
@@ -85,10 +94,17 @@ function Content() {
         <button 
           className="btn btn-primary" 
           onClick={handleRunMatching}
-          disabled={isMatching}
+          disabled={isMatching || !hasTransactions}
         >
-          {isMatching ? 'Running Matching...' : 'Run Matching'}
+          {isMatching ? 'Running Matching...' : 
+           !hasTransactions ? 'Upload Transactions First' : 
+           'Run Matching'}
         </button>
+        {!hasTransactions && (
+          <p className="matching-help">
+            Upload transactions via CSV to enable matching
+          </p>
+        )}
       </div>
     </div>
   )

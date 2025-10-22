@@ -1,45 +1,45 @@
-import { Transaction, MatchingResult } from '../types/domain'
+import { Transaction, MatchingResult } from "../types/domain";
 
-const API_BASE_URL = 'http://localhost:3000'
+const API_BASE_URL = "http://localhost:3000";
 
 export interface MatchingRequest {
-  transactions: Transaction[]
+  transactions: Transaction[];
 }
 
 export interface MatchingResponse {
-  success: boolean
-  data: MatchingResult
-  message: string
-  timestamp: string
+  success: boolean;
+  data: MatchingResult;
+  message: string;
+  timestamp: string;
 }
 
 export const matchingActions = {
   async runMatching(transactions: Transaction[]): Promise<MatchingResult> {
     try {
-      const url = `${API_BASE_URL}/v1/match/transactions`
-      
+      const url = `${API_BASE_URL}/v1/match/transactions`;
+
       const response = await fetch(url, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ transactions })
-      })
-      
+        body: JSON.stringify({ transactions }),
+      });
+
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
-      const result: MatchingResponse = await response.json()
-      
+
+      const result: MatchingResponse = await response.json();
+
       if (!result.success) {
-        throw new Error(result.message || 'Failed to run matching')
+        throw new Error(result.message || "Failed to run matching");
       }
-      
-      return result.data
+
+      return result.data;
     } catch (error) {
-      console.error('Error running matching:', error)
-      throw error
+      console.error("Error running matching:", error);
+      throw error;
     }
-  }
-}
+  },
+};

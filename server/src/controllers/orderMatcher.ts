@@ -16,132 +16,112 @@ export class OrderTransactionMatcher {
   }
 
   /**
-   * Match orders with client-provided transactions
+   * Match orders with client-provided transactions - POSTGRESQL ONLY
    */
-  public async matchOrdersWithClientTransactions(orders: Order[], clientTransactions: Transaction[]): Promise<MatchingResult> {
+  public async matchOrdersWithClientTransactions(
+    orders: Order[],
+    clientTransactions: Transaction[]
+  ): Promise<MatchingResult> {
     const matched: MatchedOrder[] = [];
     const unmatchedOrders: Order[] = [];
     const unmatchedTransactions: Transaction[] = [];
 
-    console.log(`🔍 Starting matching process with ${orders.length} orders and ${clientTransactions.length} transactions`);
+    console.log(
+      `🔍 Starting PostgreSQL-only matching process with ${orders.length} orders and ${clientTransactions.length} transactions`
+    );
 
-    // Create a copy of orders to track which ones are matched
-    const availableOrders = [...orders];
-    const availableTransactions = [...clientTransactions];
+    // Use PostgreSQL similarity function for all matching
+    const allMatches: {
+      order: Order;
+      transaction: Transaction;
+      score: number;
+    }[] = [];
 
-    for (const transaction of availableTransactions) {
-      let bestMatch: Order | null = null;
-      let bestScore = 0;
+    for (const transaction of clientTransactions) {
+      // Use database model to find similar orders
+      const similarOrders = await db.findSimilarOrders(
+        transaction.customer,
+        0.5
+      );
 
-      // Find the best matching order for this transaction
-      for (const order of availableOrders) {
-        const score = this.calculateMatchScore(order, transaction);
-        
-        if (score > bestScore && score > 0.5) { // Minimum threshold of 50%
-          bestMatch = order;
-          bestScore = score;
-        }
-      }
-
-      if (bestMatch) {
-        // Create matched order entry
-        const matchedOrder: MatchedOrder = {
-          order: bestMatch,
-          txns: [transaction],
-          matchScore: bestScore
+      for (const row of similarOrders) {
+        const order: Order = {
+          id: row.id,
+          customer: row.customer,
+          orderId: row.order_id,
+          date: row.order_date,
+          item: row.item,
+          priceCents: row.price_cents,
         };
 
-        matched.push(matchedOrder);
-
-        // Remove matched order and transaction from available lists
-        const orderIndex = availableOrders.findIndex(o => o.id === bestMatch!.id);
-        if (orderIndex !== -1) {
-          availableOrders.splice(orderIndex, 1);
-        }
-
-        console.log(`✅ Matched: Order ${bestMatch.orderId} with Transaction ${transaction.orderId} (Score: ${(bestScore * 100).toFixed(1)}%)`);
-      } else {
-        unmatchedTransactions.push(transaction);
-        console.log(`❌ No match found for Transaction ${transaction.orderId}`);
+        allMatches.push({
+          order,
+          transaction,
+          score: row.similarity_score,
+        });
       }
     }
 
-    // Remaining orders are unmatched
-    unmatchedOrders.push(...availableOrders);
+    // Sort by score (highest first)
+    allMatches.sort((a, b) => b.score - a.score);
+
+    console.log(
+      `📊 Found ${allMatches.length} potential matches above threshold`
+    );
+
+    // Greedily assign matches (highest scores first) - Allow multiple transactions per order
+    const usedTransactions = new Set<string>();
+    const orderMap = new Map<number, MatchedOrder>();
+
+    for (const match of allMatches) {
+      if (!usedTransactions.has(match.transaction.orderId)) {
+        // Check if this order already has transactions
+        if (orderMap.has(match.order.id!)) {
+          // Add transaction to existing matched order
+          orderMap.get(match.order.id!)!.txns.push(match.transaction);
+          console.log(
+            `✅ Added Transaction ${match.transaction.orderId} to existing Order ${match.order.orderId} (Score: ${(match.score * 100).toFixed(1)}%)`
+          );
+        } else {
+          // Create new matched order entry
+          const matchedOrder: MatchedOrder = {
+            order: match.order,
+            txns: [match.transaction],
+            matchScore: match.score,
+          };
+          orderMap.set(match.order.id!, matchedOrder);
+          console.log(
+            `✅ Matched: Order ${match.order.orderId} with Transaction ${match.transaction.orderId} (Score: ${(match.score * 100).toFixed(1)}%)`
+          );
+        }
+        usedTransactions.add(match.transaction.orderId);
+      }
+    }
+
+    // Convert map to array
+    matched.push(...orderMap.values());
+
+    // Find unmatched orders and transactions
+    const matchedOrderIds = new Set(matched.map(m => m.order.id!));
+    const matchedTransactionIds = new Set();
+
+    // Collect all matched transaction IDs
+    for (const match of matched) {
+      for (const txn of match.txns) {
+        matchedTransactionIds.add(txn.orderId);
+      }
+    }
+
+    unmatchedOrders.push(...orders.filter(o => !matchedOrderIds.has(o.id!)));
+    unmatchedTransactions.push(
+      ...clientTransactions.filter(t => !matchedTransactionIds.has(t.orderId))
+    );
 
     return {
       matched,
       unmatchedOrders,
-      unmatchedTransactions
+      unmatchedTransactions,
     };
-  }
-
-  /**
-   * Calculate match score between order and transaction
-   */
-  private calculateMatchScore(order: Order, transaction: Transaction): number {
-    let score = 0;
-    let factors = 0;
-
-    // Customer name similarity (40% weight)
-    const customerSimilarity = this.calculateStringSimilarity(order.customer, transaction.customer);
-    score += customerSimilarity * 0.4;
-    factors += 0.4;
-
-    // Order ID similarity (30% weight)
-    const orderIdSimilarity = this.calculateStringSimilarity(order.orderId, transaction.orderId);
-    score += orderIdSimilarity * 0.3;
-    factors += 0.3;
-
-    // Item similarity (20% weight)
-    const itemSimilarity = this.calculateStringSimilarity(order.item, transaction.item);
-    score += itemSimilarity * 0.2;
-    factors += 0.2;
-
-    // Price similarity (10% weight)
-    const priceSimilarity = this.calculatePriceSimilarity(order.priceCents, transaction.priceCents);
-    score += priceSimilarity * 0.1;
-    factors += 0.1;
-
-    return factors > 0 ? score / factors : 0;
-  }
-
-  /**
-   * Calculate string similarity using simple character matching
-   */
-  private calculateStringSimilarity(str1: string, str2: string): number {
-    if (!str1 || !str2) return 0;
-    
-    const s1 = str1.toLowerCase().trim();
-    const s2 = str2.toLowerCase().trim();
-    
-    if (s1 === s2) return 1;
-    
-    // Simple character overlap calculation
-    const longer = s1.length > s2.length ? s1 : s2;
-    const shorter = s1.length > s2.length ? s2 : s1;
-    
-    if (longer.length === 0) return 0;
-    
-    const matches = longer.split('').filter((char, index) => 
-      shorter[index] === char
-    ).length;
-    
-    return matches / longer.length;
-  }
-
-  /**
-   * Calculate price similarity
-   */
-  private calculatePriceSimilarity(price1: number, price2: number): number {
-    if (price1 === price2) return 1;
-    
-    const diff = Math.abs(price1 - price2);
-    const maxPrice = Math.max(price1, price2);
-    
-    if (maxPrice === 0) return 1;
-    
-    return Math.max(0, 1 - (diff / maxPrice));
   }
 
   /**
@@ -337,29 +317,6 @@ export class OrderTransactionMatcher {
   }
 
   /**
-   * Insert sample data into database
-   */
-  public async insertSampleData(): Promise<void> {
-    // Insert orders (prices in cents)
-    await db.query(`
-      INSERT INTO orders (customer, order_id, order_date, item, price_cents) VALUES
-      ('Alex Abel', '18G', '2023-07-11', 'Tool A', 123),
-      ('Brian Bell', '20S', '2023-08-08', 'Toy B', 321)
-      ON CONFLICT (order_id) DO NOTHING
-    `);
-
-    // Insert transactions (prices in cents)
-    await db.query(`
-      INSERT INTO transactions (customer, order_id, transaction_date, item, price_cents, txn_type, txn_amount_cents) VALUES
-      ('Alexis Abe', '1B6', '2023-07-12', 'Tool A', 123, 'payment', 123),
-      ('Alex Able', 'I8G', '2023-07-13', 'Tool A', 123, 'refund', -123),
-      ('Brian Ball', 'ZOS', '2023-08-11', 'Toy B', 321, 'payment-1', 121),
-      ('Bryan', '705', '2023-08-13', 'Toy B', 321, 'payment-2', 200)
-      ON CONFLICT DO NOTHING
-    `);
-  }
-
-  /**
    * Reset all matches (for testing)
    */
   public async resetMatches(): Promise<void> {
@@ -370,7 +327,9 @@ export class OrderTransactionMatcher {
 }
 
 // Example of how to use the matcher
-export async function runOrderMatchingWithTransactions(clientTransactions: Transaction[]): Promise<MatchingResult> {
+export async function runOrderMatchingWithTransactions(
+  clientTransactions: Transaction[]
+): Promise<MatchingResult> {
   const matcher = new OrderTransactionMatcher();
 
   try {
@@ -383,7 +342,7 @@ export async function runOrderMatchingWithTransactions(clientTransactions: Trans
       FROM orders 
       ORDER BY id
     `);
-    
+
     const orders: Order[] = ordersResult.rows.map(row => ({
       id: row.id,
       customer: row.customer,
@@ -393,15 +352,30 @@ export async function runOrderMatchingWithTransactions(clientTransactions: Trans
       priceCents: row.price_cents,
     }));
 
-    console.log(`📊 Matching ${orders.length} orders with ${clientTransactions.length} client transactions`);
+    console.log(
+      `📊 Matching ${orders.length} orders with ${clientTransactions.length} client transactions`
+    );
+    console.log(
+      '📋 Available orders:',
+      orders.map(o => `${o.customer} | ${o.orderId} | ${o.item}`)
+    );
+    console.log(
+      '📋 Client transactions:',
+      clientTransactions.map(t => `${t.customer} | ${t.orderId} | ${t.item}`)
+    );
 
     // Run matching algorithm
-    const result = await matcher.matchOrdersWithClientTransactions(orders, clientTransactions);
+    const result = await matcher.matchOrdersWithClientTransactions(
+      orders,
+      clientTransactions
+    );
 
     console.log('\n=== CLIENT TRANSACTION MATCHING RESULTS ===\n');
     console.log(`✅ Matched Orders: ${result.matched.length}`);
     console.log(`❌ Unmatched Orders: ${result.unmatchedOrders.length}`);
-    console.log(`❌ Unmatched Transactions: ${result.unmatchedTransactions.length}\n`);
+    console.log(
+      `❌ Unmatched Transactions: ${result.unmatchedTransactions.length}\n`
+    );
 
     return result;
   } catch (error) {

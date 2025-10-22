@@ -2,6 +2,8 @@
 import Router from '@koa/router';
 import { Context } from 'koa';
 import { runOrderMatchingWithTransactions } from '../controllers/orderMatcher';
+import { ordersController } from '../controllers/orders';
+import { transactionsController } from '../controllers/transactions';
 
 const router = new Router();
 
@@ -30,14 +32,13 @@ router.get('/', async (ctx: Context) => {
   };
 });
 
-
 // Order matching with transactions endpoint
 router.post('/v1/match/transactions', async (ctx: Context) => {
   try {
     console.log('🚀 Starting order matching with transactions...');
 
     const { transactions } = ctx.request.body as { transactions: any[] };
-    
+
     if (!transactions || !Array.isArray(transactions)) {
       ctx.status = 400;
       ctx.body = {
@@ -48,7 +49,9 @@ router.post('/v1/match/transactions', async (ctx: Context) => {
       return;
     }
 
-    console.log(`📊 Processing ${transactions.length} transactions for matching`);
+    console.log(
+      `📊 Processing ${transactions.length} transactions for matching`
+    );
 
     // Run the actual matching algorithm
     const result = await runOrderMatchingWithTransactions(transactions);
@@ -77,73 +80,33 @@ router.post('/v1/match/transactions', async (ctx: Context) => {
 router.post('/v1/orders/bulk', async (ctx: Context) => {
   try {
     const { orders } = ctx.request.body as { orders: any[] };
+
+    // Use controller to handle business logic and formatting
+    const result = await ordersController.bulkInsertOrders(orders);
     
-    if (!orders || !Array.isArray(orders)) {
-      ctx.status = 400;
-      ctx.body = {
-        success: false,
-        error: 'Invalid request: orders array is required',
-        timestamp: new Date().toISOString(),
-      };
-      return;
-    }
-
-    console.log(`📊 Bulk inserting ${orders.length} orders`);
-
-    const { db } = await import('../models/database');
-    
-    let insertedCount = 0;
-    const errors: string[] = [];
-
-    for (const order of orders) {
-      try {
-        // Check if order already exists
-        const existingOrder = await db.query(
-          'SELECT id FROM orders WHERE order_id = $1',
-          [order.orderId]
-        );
-
-        if (existingOrder.rows.length > 0) {
-          console.log(`⚠️ Order ${order.orderId} already exists, skipping`);
-          continue;
-        }
-
-        // Insert new order
-        await db.query(`
-          INSERT INTO orders (customer, order_id, order_date, item, price_cents)
-          VALUES ($1, $2, $3, $4, $5)
-        `, [
-          order.customer,
-          order.orderId,
-          order.date,
-          order.item,
-          order.priceCents
-        ]);
-
-        insertedCount++;
-        console.log(`✅ Inserted order: ${order.orderId} for ${order.customer}`);
-      } catch (error) {
-        const errorMsg = `Failed to insert order ${order.orderId}: ${error instanceof Error ? error.message : 'Unknown error'}`;
-        errors.push(errorMsg);
-        console.error(`❌ ${errorMsg}`);
-      }
-    }
-
-    ctx.body = {
-      success: true,
-      data: {
-        insertedCount,
-        totalProcessed: orders.length,
-        errors: errors.length > 0 ? errors : undefined
-      },
-      message: `Successfully inserted ${insertedCount} out of ${orders.length} orders`,
-      timestamp: new Date().toISOString(),
-    };
-
-    console.log(`✅ Bulk insert completed: ${insertedCount}/${orders.length} orders inserted`);
+    ctx.body = result;
   } catch (error) {
     console.error('❌ Failed to bulk insert orders:', error);
+    ctx.status = 500;
+    ctx.body = {
+      success: false,
+      error: 'Internal server error during bulk insert',
+      timestamp: new Date().toISOString(),
+    };
+  }
+});
 
+// Bulk insert transactions endpoint
+router.post('/v1/transactions/bulk', async (ctx: Context) => {
+  try {
+    const { transactions } = ctx.request.body as { transactions: any[] };
+
+    // Use controller to handle business logic and formatting
+    const result = await transactionsController.bulkInsertTransactions(transactions);
+    
+    ctx.body = result;
+  } catch (error) {
+    console.error('❌ Failed to bulk insert transactions:', error);
     ctx.status = 500;
     ctx.body = {
       success: false,
@@ -156,57 +119,21 @@ router.post('/v1/orders/bulk', async (ctx: Context) => {
 // Get orders endpoint with pagination
 router.get('/v1/orders', async (ctx: Context) => {
   try {
-    const { db } = await import('../models/database');
-
     // Parse pagination parameters
     const page = parseInt(ctx.query.page as string) || 1;
     const limit = parseInt(ctx.query.limit as string) || 10;
-    const offset = (page - 1) * limit;
 
-    // Get total count
-    const countResult = await db.query('SELECT COUNT(*) as total FROM orders');
-    const totalCount = parseInt(countResult.rows[0].total);
-
-    // Get paginated orders
-    const result = await db.query(`
-      SELECT id, customer, order_id, order_date, item, price_cents 
-      FROM orders 
-      ORDER BY id
-      LIMIT $1 OFFSET $2
-    `, [limit, offset]);
-
-    const orders = result.rows.map(row => ({
-      id: row.id,
-      customer: row.customer,
-      orderId: row.order_id,
-      date: row.order_date,
-      item: row.item,
-      priceCents: row.price_cents,
-    }));
-
-    const totalPages = Math.ceil(totalCount / limit);
-
-    ctx.body = {
-      success: true,
-      data: orders,
-      pagination: {
-        page,
-        limit,
-        totalCount,
-        totalPages,
-        hasNextPage: page < totalPages,
-        hasPrevPage: page > 1,
-      },
-      timestamp: new Date().toISOString(),
-    };
+    // Use controller to handle business logic and formatting
+    const result = await ordersController.getOrders(page, limit);
+    
+    ctx.body = result;
   } catch (error) {
     console.error('❌ Failed to fetch orders:', error);
-
     ctx.status = 500;
     ctx.body = {
       success: false,
-      error: 'Failed to fetch orders',
-      message: error instanceof Error ? error.message : 'Unknown error',
+      error: 'Internal server error',
+      timestamp: new Date().toISOString(),
     };
   }
 });
@@ -214,41 +141,17 @@ router.get('/v1/orders', async (ctx: Context) => {
 // Get transactions endpoint
 router.get('/v1/transactions', async (ctx: Context) => {
   try {
-    const { db } = await import('../models/database');
-
-    const result = await db.query(`
-      SELECT id, customer, order_id, transaction_date, item, price_cents, 
-             txn_type, txn_amount_cents, matched_order_id 
-      FROM transactions 
-      ORDER BY id
-    `);
-
-    const transactions = result.rows.map(row => ({
-      id: row.id,
-      customer: row.customer,
-      orderId: row.order_id,
-      date: row.transaction_date,
-      item: row.item,
-      priceCents: row.price_cents,
-      txnType: row.txn_type,
-      txnAmountCents: row.txn_amount_cents,
-      matchedOrderId: row.matched_order_id,
-    }));
-
-    ctx.body = {
-      success: true,
-      data: transactions,
-      count: transactions.length,
-      timestamp: new Date().toISOString(),
-    };
+    // Use controller to handle business logic and formatting
+    const result = await transactionsController.getTransactions();
+    
+    ctx.body = result;
   } catch (error) {
     console.error('❌ Failed to fetch transactions:', error);
-
     ctx.status = 500;
     ctx.body = {
       success: false,
-      error: 'Failed to fetch transactions',
-      message: error instanceof Error ? error.message : 'Unknown error',
+      error: 'Internal server error',
+      timestamp: new Date().toISOString(),
     };
   }
 });
