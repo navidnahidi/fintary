@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+
+# Config files
+*.config.js
+*.config.ts
+
+# SQL files
+*.sql
+
+# Docker files
+docker-compose.yml
+Dockerfile
+
+# IDE files
+.vscode/
+.idea/
+
+# OS generated files
+.DS_Store
+Thumbs.db

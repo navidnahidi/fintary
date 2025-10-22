@@ -33,6 +33,12 @@ npm run match
 - `npm run build` - Compile TypeScript to JavaScript
 - `npm start` - Run compiled application
 
+### Code Quality
+- `npm run lint` - Run ESLint to check code quality
+- `npm run lint:fix` - Run ESLint and automatically fix issues
+- `npm run format` - Format code with Prettier
+- `npm run format:check` - Check if code is formatted correctly
+
 ### Database Management
 - `npm run db:up` - Start PostgreSQL container
 - `npm run db:down` - Stop PostgreSQL container
@@ -175,6 +181,38 @@ The `docker-compose.yml` file sets up:
 - Persistent data volume
 - Port mapping (5432:5432)
 
+## Code Quality Tools
+
+The project includes ESLint and Prettier for maintaining code quality:
+
+### ESLint Configuration
+- TypeScript support with `@typescript-eslint`
+- Prettier integration to avoid conflicts
+- Custom rules for Node.js and TypeScript best practices
+- Automatic fixing for many issues
+
+### Prettier Configuration
+- Single quotes for strings
+- Semicolons enabled
+- 2-space indentation
+- 80 character line width
+- Trailing commas in ES5
+
+### Usage
+```bash
+# Check code quality
+npm run lint
+
+# Fix auto-fixable issues
+npm run lint:fix
+
+# Format all code
+npm run format
+
+# Check formatting
+npm run format:check
+```
+
 ## Project Structure
 
 ```
@@ -188,10 +226,16 @@ src/
 
 sql/
 ├── migrations/
-│   └── 001_create_orders_and_transactions_tables.sql
+│   ├── 001_create_orders_and_transactions_tables.sql
+│   └── 002_fix_string_similarity_functions.sql
 └── seeds/
     └── 001_sample_data.sql
 
+# Configuration files
+.prettierrc           # Prettier configuration
+.eslintrc.js          # ESLint configuration
+.prettierignore       # Prettier ignore patterns
+.eslintignore         # ESLint ignore patterns
 docker-compose.yml    # PostgreSQL container setup
 ```
 

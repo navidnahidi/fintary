@@ -18,7 +18,11 @@
         "migrate:seed": "ts-node src/migrate.ts seed",
         "migrate:status": "ts-node src/migrate.ts status",
         "migrate:fresh": "ts-node src/migrate.ts fresh",
-        "migrate:reset": "ts-node src/migrate.ts reset"
+        "migrate:reset": "ts-node src/migrate.ts reset",
+        "lint": "eslint src/**/*.ts",
+        "lint:fix": "eslint src/**/*.ts --fix",
+        "format": "prettier --write src/**/*.ts",
+        "format:check": "prettier --check src/**/*.ts"
     },
   "keywords": ["node", "typescript", "es6"],
   "author": "",
@@ -29,7 +33,13 @@
   "devDependencies": {
     "@types/node": "^20.0.0",
     "@types/pg": "^8.10.9",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^8.0.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-prettier": "^5.0.0",
     "nodemon": "^3.0.0",
+    "prettier": "^3.0.0",
     "ts-node": "^10.9.0",
     "typescript": "^5.0.0"
   }
