@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "A Node.js application with TypeScript support",
   "main": "dist/index.js",
-  "type": "module",
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
@@ -19,5 +18,7 @@
     "ts-node": "^10.9.0",
     "typescript": "^5.0.0"
   },
-  "dependencies": {}
+  "dependencies": {
+    "fuse.js": "^7.0.0"
+  }
 }
