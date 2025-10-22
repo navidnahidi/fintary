@@ -1,6 +1,7 @@
 // Main router configuration for Koa
 import Router from '@koa/router';
 import { Context } from 'koa';
+import { runOrderMatchingWithTransactions } from '../controllers/orderMatcher';
 
 const router = new Router();
 
@@ -29,48 +30,70 @@ router.get('/', async (ctx: Context) => {
   };
 });
 
-// Order matching endpoint
-router.post('/v1/match', async (ctx: Context) => {
+
+// Order matching with transactions endpoint
+router.post('/v1/match/transactions', async (ctx: Context) => {
   try {
-    console.log('🚀 Starting order matching process...');
+    console.log('🚀 Starting order matching with transactions...');
 
-    // Import the matcher function
-    const { runOrderMatching } = await import('../controllers/orderMatcher');
+    const { transactions } = ctx.request.body as { transactions: any[] };
+    
+    if (!transactions || !Array.isArray(transactions)) {
+      ctx.status = 400;
+      ctx.body = {
+        success: false,
+        error: 'Invalid request: transactions array is required',
+        timestamp: new Date().toISOString(),
+      };
+      return;
+    }
 
-    // Run the matching process
-    const result = await runOrderMatching();
+    console.log(`📊 Processing ${transactions.length} transactions for matching`);
+
+    // Run the actual matching algorithm
+    const result = await runOrderMatchingWithTransactions(transactions);
 
     ctx.body = {
       success: true,
       data: result,
-      message: 'Order matching completed successfully',
+      message: 'Order matching with transactions completed successfully',
       timestamp: new Date().toISOString(),
     };
 
-    console.log('✅ Order matching completed successfully');
+    console.log('✅ Order matching with transactions completed successfully');
   } catch (error) {
-    console.error('❌ Order matching failed:', error);
+    console.error('❌ Failed to run order matching with transactions:', error);
 
     ctx.status = 500;
     ctx.body = {
       success: false,
-      error: 'Order matching failed',
-      message: error instanceof Error ? error.message : 'Unknown error',
+      error: 'Internal server error during order matching',
       timestamp: new Date().toISOString(),
     };
   }
 });
 
-// Get orders endpoint
+// Get orders endpoint with pagination
 router.get('/v1/orders', async (ctx: Context) => {
   try {
     const { db } = await import('../models/database');
 
+    // Parse pagination parameters
+    const page = parseInt(ctx.query.page as string) || 1;
+    const limit = parseInt(ctx.query.limit as string) || 10;
+    const offset = (page - 1) * limit;
+
+    // Get total count
+    const countResult = await db.query('SELECT COUNT(*) as total FROM orders');
+    const totalCount = parseInt(countResult.rows[0].total);
+
+    // Get paginated orders
     const result = await db.query(`
       SELECT id, customer, order_id, order_date, item, price_cents 
       FROM orders 
       ORDER BY id
-    `);
+      LIMIT $1 OFFSET $2
+    `, [limit, offset]);
 
     const orders = result.rows.map(row => ({
       id: row.id,
@@ -81,10 +104,19 @@ router.get('/v1/orders', async (ctx: Context) => {
       priceCents: row.price_cents,
     }));
 
+    const totalPages = Math.ceil(totalCount / limit);
+
     ctx.body = {
       success: true,
       data: orders,
-      count: orders.length,
+      pagination: {
+        page,
+        limit,
+        totalCount,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
+      },
       timestamp: new Date().toISOString(),
     };
   } catch (error) {
