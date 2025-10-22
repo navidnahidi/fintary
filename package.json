@@ -24,7 +24,8 @@
         "format": "prettier --write src/**/*.ts",
         "format:check": "prettier --check src/**/*.ts",
         "prepare": "husky install",
-        "pre-commit": "lint-staged"
+        "pre-commit": "lint-staged",
+        "insert-sample": "ts-node src/insertSampleData.ts"
     },
   "keywords": ["node", "typescript", "es6"],
   "author": "",

@@ -269,9 +269,6 @@ export async function runOrderMatching(): Promise<void> {
   const matcher = new OrderTransactionMatcher();
 
   try {
-    // Insert sample data if needed
-    await matcher.insertSampleData();
-
     // Reset matches for fresh run
     await matcher.resetMatches();
 
