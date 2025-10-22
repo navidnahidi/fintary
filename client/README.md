@@ -64,7 +64,7 @@ client/
 The app is configured to proxy API requests to the backend server:
 - Frontend runs on `http://localhost:3001`
 - Backend API calls are proxied to `http://localhost:3000`
-- All `/api/*` requests are forwarded to the backend
+- All `/v1/*` requests are forwarded to the backend
 
 ## 🎯 TypeScript Features
 

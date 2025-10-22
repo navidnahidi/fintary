@@ -1,11 +1,5 @@
 import React from 'react'
-import { MatchingResult } from '../types'
-
-interface DashboardProps {
-  matchingResult: MatchingResult | null;
-  isLoading: boolean;
-  onRunMatching: () => void;
-}
+import { DashboardProps, MatchedOrder, Transaction } from '../types/components'
 
 const Dashboard: React.FC<DashboardProps> = ({ 
   matchingResult, 
@@ -63,7 +57,7 @@ const Dashboard: React.FC<DashboardProps> = ({
             <div className="matched-orders">
               <h3>✅ Successfully Matched Orders</h3>
               <div className="orders-list">
-                {matchingResult.matched.map((match, index) => (
+                {matchingResult.matched.map((match: MatchedOrder, index: number) => (
                   <div key={index} className="order-card">
                     <div className="order-header">
                       <h4>{match.order.customer}</h4>
@@ -77,7 +71,7 @@ const Dashboard: React.FC<DashboardProps> = ({
                     </div>
                     <div className="transactions">
                       <h5>Related Transactions:</h5>
-                      {match.txns.map((txn, txnIndex) => (
+                      {match.txns.map((txn: Transaction, txnIndex: number) => (
                         <div key={txnIndex} className="transaction-item">
                           <span className="txn-customer">{txn.customer}</span>
                           <span className="txn-type">{txn.txnType}</span>

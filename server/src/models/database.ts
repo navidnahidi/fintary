@@ -1,13 +1,6 @@
 // Database connection and configuration
 import { Pool, PoolClient, QueryResult, QueryResultRow } from 'pg';
-
-export interface DatabaseConfig {
-  host: string;
-  port: number;
-  database: string;
-  user: string;
-  password: string;
-}
+import { DatabaseConfig } from '../types/database';
 
 const defaultConfig: DatabaseConfig = {
   host: process.env.DB_HOST || 'localhost',

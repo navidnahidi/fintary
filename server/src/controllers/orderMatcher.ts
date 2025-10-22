@@ -1,38 +1,14 @@
 // Order-Transaction Matcher using PostgreSQL
-import { Order, Transaction, MatchedOrder, MatchingResult } from '../models/types';
+import {
+  Order,
+  Transaction,
+  MatchedOrder,
+  MatchingResult,
+  OrderRow,
+  TransactionRow,
+  OrderScoreRow,
+} from '../models/types';
 import { db } from '../models/database';
-
-// Database row interfaces
-interface OrderRow {
-  id: number;
-  customer: string;
-  order_id: string;
-  order_date: string;
-  item: string;
-  price_cents: number;
-}
-
-interface TransactionRow {
-  id: number;
-  customer: string;
-  order_id: string;
-  transaction_date: string;
-  item: string;
-  price_cents: number;
-  txn_type: string;
-  txn_amount_cents: number;
-  matched_order_id: number | null;
-}
-
-interface OrderScoreRow {
-  id: number;
-  customer: string;
-  order_id: string;
-  order_date: string;
-  item: string;
-  price_cents: number;
-  score: string; // PostgreSQL returns numeric as string
-}
 
 export class OrderTransactionMatcher {
   constructor() {

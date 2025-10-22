@@ -3,19 +3,7 @@
 import { readFileSync, readdirSync } from 'fs';
 import { join } from 'path';
 import { db } from '../models/database';
-
-interface MigrationFile {
-  name: string;
-  path: string;
-  content: string;
-}
-
-interface MigrationRow {
-  migration_name: string;
-  executed_at: string;
-  checksum: string;
-  execution_time_ms: number;
-}
+import { MigrationFile, MigrationRow } from '../types/migration';
 
 class MigrationRunner {
   private migrationsDir: string;

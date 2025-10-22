@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import './App.css'
 import Header from './components/Header'
 import Dashboard from './components/Dashboard'
 import OrderMatcher from './components/OrderMatcher'
-import { Order, Transaction, MatchingResult } from './types'
+import {  MatchingResult } from './types'
 
 function App() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'matcher'>('dashboard')
@@ -14,7 +14,7 @@ function App() {
     setIsLoading(true)
     try {
       // This would call your backend API
-      const response = await fetch('/api/match')
+      const response = await fetch('/v1/match')
       const result = await response.json()
       setMatchingResult(result)
     } catch (error) {

@@ -1,11 +1,5 @@
 import React from 'react'
-import { MatchingResult } from '../types'
-
-interface OrderMatcherProps {
-  matchingResult: MatchingResult | null;
-  isLoading: boolean;
-  onRunMatching: () => void;
-}
+import { OrderMatcherProps } from '../types/components'
 
 const OrderMatcher: React.FC<OrderMatcherProps> = ({ 
   matchingResult, 

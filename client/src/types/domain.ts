@@ -1,4 +1,4 @@
-// Core business domain types for Order-Transaction Matcher
+// Core business domain types matching server-side types
 
 export interface Order {
   id?: number;
@@ -32,13 +32,3 @@ export interface MatchingResult {
   unmatchedOrders: Order[];
   unmatchedTransactions: Transaction[];
 }
-
-// Re-export commonly used types for convenience
-export type {
-  DatabaseConfig,
-  OrderRow,
-  TransactionRow,
-  OrderScoreRow,
-} from '../types/database';
-export type { ServerConfig, ApiResponse, ServerHealth } from '../types/server';
-export type { MigrationFile, MigrationResult } from '../types/migration';
