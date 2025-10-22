@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: fintary-postgres
+    environment:
+      POSTGRES_DB: fintary
+      POSTGRES_USER: fintary_user
+      POSTGRES_PASSWORD: fintary_password
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./sql/migrations:/docker-entrypoint-initdb.d/migrations
+      - ./sql/seeds:/docker-entrypoint-initdb.d/seeds
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

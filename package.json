@@ -3,22 +3,34 @@
   "version": "1.0.0",
   "description": "A Node.js application with TypeScript support",
   "main": "dist/index.js",
-  "scripts": {
-    "build": "tsc",
-    "start": "node dist/index.js",
-    "dev": "nodemon src/index.ts",
-    "clean": "rm -rf dist"
-  },
+    "scripts": {
+        "build": "tsc",
+        "start": "node dist/index.js",
+        "dev": "nodemon src/index.ts",
+        "clean": "rm -rf dist",
+        "match": "ts-node src/runMatcher.ts",
+        "db:up": "docker-compose up -d",
+        "db:down": "docker-compose down",
+        "db:logs": "docker-compose logs -f postgres",
+        "db:reset": "docker-compose down -v && docker-compose up -d",
+        "migrate": "ts-node src/migrate.ts",
+        "migrate:migrate": "ts-node src/migrate.ts migrate",
+        "migrate:seed": "ts-node src/migrate.ts seed",
+        "migrate:status": "ts-node src/migrate.ts status",
+        "migrate:fresh": "ts-node src/migrate.ts fresh",
+        "migrate:reset": "ts-node src/migrate.ts reset"
+    },
   "keywords": ["node", "typescript", "es6"],
   "author": "",
   "license": "ISC",
+  "dependencies": {
+    "pg": "^8.11.3"
+  },
   "devDependencies": {
     "@types/node": "^20.0.0",
+    "@types/pg": "^8.10.9",
     "nodemon": "^3.0.0",
     "ts-node": "^10.9.0",
     "typescript": "^5.0.0"
-  },
-  "dependencies": {
-    "fuse.js": "^7.0.0"
   }
 }
