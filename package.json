@@ -22,7 +22,9 @@
         "lint": "eslint src/**/*.ts",
         "lint:fix": "eslint src/**/*.ts --fix",
         "format": "prettier --write src/**/*.ts",
-        "format:check": "prettier --check src/**/*.ts"
+        "format:check": "prettier --check src/**/*.ts",
+        "prepare": "husky install",
+        "pre-commit": "lint-staged"
     },
   "keywords": ["node", "typescript", "es6"],
   "author": "",
@@ -38,9 +40,20 @@
     "eslint": "^8.0.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-prettier": "^5.0.0",
+    "husky": "^8.0.0",
+    "lint-staged": "^15.0.0",
     "nodemon": "^3.0.0",
     "prettier": "^3.0.0",
     "ts-node": "^10.9.0",
     "typescript": "^5.0.0"
+  },
+  "lint-staged": {
+    "src/**/*.ts": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "src/**/*.{js,json,md}": [
+      "prettier --write"
+    ]
   }
 }
