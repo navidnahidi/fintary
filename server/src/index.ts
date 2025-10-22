@@ -1,6 +1,6 @@
 // Main entry point for the application
 import { createServer, IncomingMessage, ServerResponse, Server } from 'http';
-import { URL } from 'url';
+import { Router } from './router';
 
 interface ServerConfig {
   port: number;
@@ -16,9 +16,11 @@ const config: ServerConfig = {
 class Application {
   private server: Server;
   private config: ServerConfig;
+  private router: Router;
 
   constructor(config: ServerConfig) {
     this.config = config;
+    this.router = new Router();
     this.server = createServer(this.handleRequest.bind(this));
   }
 
@@ -26,8 +28,6 @@ class Application {
     req: IncomingMessage,
     res: ServerResponse
   ): Promise<void> {
-    const url = new URL(req.url || '/', `http://${req.headers.host}`);
-
     // Set CORS headers
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader(
@@ -45,39 +45,8 @@ class Application {
       return;
     }
 
-    // Route handling
-    switch (url.pathname) {
-      case '/':
-        this.sendResponse(res, 200, {
-          message: 'Welcome to Fintary Node.js App!',
-          timestamp: new Date().toISOString(),
-          features: ['TypeScript', 'ES6+', 'Nodemon'],
-        });
-        break;
-
-      case '/health':
-        this.sendResponse(res, 200, {
-          status: 'healthy',
-          uptime: process.uptime(),
-          memory: process.memoryUsage(),
-        });
-        break;
-
-      default:
-        this.sendResponse(res, 404, {
-          error: 'Not Found',
-          path: url.pathname,
-        });
-    }
-  }
-
-  private sendResponse(
-    res: ServerResponse,
-    statusCode: number,
-    data: unknown
-  ): void {
-    res.writeHead(statusCode, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify(data, null, 2));
+    // Delegate routing to the router
+    this.router.handleRequest(req, res);
   }
 
   public start(): void {

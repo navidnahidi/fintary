@@ -1,6 +1,6 @@
 // Order-Transaction Matcher using PostgreSQL
-import { Order, Transaction, MatchedOrder, MatchingResult } from './types';
-import { db } from './database';
+import { Order, Transaction, MatchedOrder, MatchingResult } from '../models/types';
+import { db } from '../models/database';
 
 // Database row interfaces
 interface OrderRow {

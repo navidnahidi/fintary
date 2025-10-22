@@ -2,7 +2,7 @@
 
 import { readFileSync, readdirSync } from 'fs';
 import { join } from 'path';
-import { db } from './database';
+import { db } from '../models/database';
 
 interface MigrationFile {
   name: string;
