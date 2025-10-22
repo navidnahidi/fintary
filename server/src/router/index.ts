@@ -73,6 +73,86 @@ router.post('/v1/match/transactions', async (ctx: Context) => {
   }
 });
 
+// Bulk insert orders endpoint
+router.post('/v1/orders/bulk', async (ctx: Context) => {
+  try {
+    const { orders } = ctx.request.body as { orders: any[] };
+    
+    if (!orders || !Array.isArray(orders)) {
+      ctx.status = 400;
+      ctx.body = {
+        success: false,
+        error: 'Invalid request: orders array is required',
+        timestamp: new Date().toISOString(),
+      };
+      return;
+    }
+
+    console.log(`📊 Bulk inserting ${orders.length} orders`);
+
+    const { db } = await import('../models/database');
+    
+    let insertedCount = 0;
+    const errors: string[] = [];
+
+    for (const order of orders) {
+      try {
+        // Check if order already exists
+        const existingOrder = await db.query(
+          'SELECT id FROM orders WHERE order_id = $1',
+          [order.orderId]
+        );
+
+        if (existingOrder.rows.length > 0) {
+          console.log(`⚠️ Order ${order.orderId} already exists, skipping`);
+          continue;
+        }
+
+        // Insert new order
+        await db.query(`
+          INSERT INTO orders (customer, order_id, order_date, item, price_cents)
+          VALUES ($1, $2, $3, $4, $5)
+        `, [
+          order.customer,
+          order.orderId,
+          order.date,
+          order.item,
+          order.priceCents
+        ]);
+
+        insertedCount++;
+        console.log(`✅ Inserted order: ${order.orderId} for ${order.customer}`);
+      } catch (error) {
+        const errorMsg = `Failed to insert order ${order.orderId}: ${error instanceof Error ? error.message : 'Unknown error'}`;
+        errors.push(errorMsg);
+        console.error(`❌ ${errorMsg}`);
+      }
+    }
+
+    ctx.body = {
+      success: true,
+      data: {
+        insertedCount,
+        totalProcessed: orders.length,
+        errors: errors.length > 0 ? errors : undefined
+      },
+      message: `Successfully inserted ${insertedCount} out of ${orders.length} orders`,
+      timestamp: new Date().toISOString(),
+    };
+
+    console.log(`✅ Bulk insert completed: ${insertedCount}/${orders.length} orders inserted`);
+  } catch (error) {
+    console.error('❌ Failed to bulk insert orders:', error);
+
+    ctx.status = 500;
+    ctx.body = {
+      success: false,
+      error: 'Internal server error during bulk insert',
+      timestamp: new Date().toISOString(),
+    };
+  }
+});
+
 // Get orders endpoint with pagination
 router.get('/v1/orders', async (ctx: Context) => {
   try {

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Order } from '../types/domain'
 import { orderActions, OrdersResponse } from '../actions/orders'
+import CSVUpload from './CSVUpload'
 
 function OrdersTab() {
   const [orders, setOrders] = useState<Order[]>([])
@@ -59,10 +60,33 @@ function OrdersTab() {
     setOrdersPagination(prev => ({ ...prev, page: newPage }))
   }
 
+  const handleOrdersUploaded = (newOrders: Order[]) => {
+    // Refresh the orders list after CSV upload
+    const fetchOrders = async () => {
+      setOrdersLoading(true)
+      setOrdersError(null)
+      
+      try {
+        const response: OrdersResponse = await orderActions.fetchOrders(ordersPagination.page, ordersPagination.limit)
+        setOrders(response.data)
+        setOrdersPagination(response.pagination)
+      } catch (error) {
+        setOrdersError(error instanceof Error ? error.message : 'Failed to fetch orders')
+        console.error('Error fetching orders:', error)
+      } finally {
+        setOrdersLoading(false)
+      }
+    }
+
+    fetchOrders()
+  }
+
 
   return (
     <div className="tab-panel">
       <h3>Orders</h3>
+      
+      <CSVUpload onOrdersUploaded={handleOrdersUploaded} />
       
       {ordersLoading && (
         <div className="loading">Loading orders...</div>
