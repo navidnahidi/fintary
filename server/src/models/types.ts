@@ -33,6 +33,58 @@ export interface MatchingResult {
   unmatchedTransactions: Transaction[];
 }
 
+// Database model interfaces
+export interface OrderData {
+  id: number;
+  customer: string;
+  order_id: string;
+  order_date: string;
+  item: string;
+  price_cents: number;
+}
+
+export interface OrderInput {
+  customer: string;
+  orderId: string;
+  date: string;
+  item: string;
+  priceCents: number;
+}
+
+export interface PaginatedOrdersResult {
+  orders: OrderData[];
+  totalCount: number;
+  totalPages: number;
+}
+
+export interface TransactionData {
+  id: number;
+  customer: string;
+  order_id: string;
+  transaction_date: string;
+  item: string;
+  price_cents: number;
+  txn_type: string;
+  txn_amount_cents: number;
+  matched_order_id: number | null;
+}
+
+export interface TransactionInput {
+  customer: string;
+  orderId: string;
+  date: string;
+  item: string;
+  priceCents: number;
+  txnType: string;
+  txnAmountCents: number;
+}
+
+export interface BulkInsertResult {
+  insertedCount: number;
+  totalProcessed: number;
+  errors?: string[];
+}
+
 // Re-export commonly used types for convenience
 export type {
   DatabaseConfig,

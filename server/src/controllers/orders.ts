@@ -1,5 +1,5 @@
 // Orders controller - handles business logic and data formatting
-import { db } from '../models/database';
+import { orderModel } from '../models/order';
 import { Order } from '../models/types';
 
 export class OrdersController {
@@ -7,7 +7,7 @@ export class OrdersController {
    * Get paginated orders with proper formatting
    */
   async getOrders(page: number = 1, limit: number = 10) {
-    const result = await db.getOrders(page, limit);
+    const result = await orderModel.getOrders(page, limit);
 
     // Format orders for API response
     const formattedOrders: Order[] = result.orders.map(row => ({
@@ -44,7 +44,7 @@ export class OrdersController {
 
     console.log(`📊 Bulk inserting ${orders.length} orders`);
 
-    const result = await db.bulkInsertOrders(orders);
+    const result = await orderModel.bulkInsertOrders(orders);
 
     return {
       success: true,

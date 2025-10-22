@@ -1,12 +1,12 @@
 // Transactions controller - handles business logic and data formatting
-import { db } from '../models/database';
+import { transactionModel } from '../models/transaction';
 
 export class TransactionsController {
   /**
    * Get all transactions with proper formatting
    */
   async getTransactions() {
-    const transactions = await db.getTransactions();
+    const transactions = await transactionModel.getTransactions();
 
     // Format transactions for API response
     const formattedTransactions = transactions.map(row => ({
@@ -38,7 +38,7 @@ export class TransactionsController {
 
     console.log(`📊 Bulk inserting ${transactions.length} transactions`);
 
-    const result = await db.bulkInsertTransactions(transactions);
+    const result = await transactionModel.bulkInsertTransactions(transactions);
 
     return {
       success: true,
