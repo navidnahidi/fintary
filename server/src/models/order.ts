@@ -56,7 +56,6 @@ export class OrderModel {
         );
 
         if (existingOrder.rows.length > 0) {
-          console.log(`⚠️ Order ${order.orderId} already exists, skipping`);
           continue;
         }
 
@@ -76,13 +75,9 @@ export class OrderModel {
         );
 
         insertedCount++;
-        console.log(
-          `✅ Inserted order: ${order.orderId} for ${order.customer}`
-        );
       } catch (error) {
         const errorMsg = `Failed to insert order ${order.orderId}: ${error instanceof Error ? error.message : 'Unknown error'}`;
         errors.push(errorMsg);
-        console.error(`❌ ${errorMsg}`);
       }
     }
 

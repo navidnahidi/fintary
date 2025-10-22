@@ -46,7 +46,7 @@ function OrdersTab() {
         }
       } catch (error) {
         setOrdersError(error instanceof Error ? error.message : 'Failed to fetch orders')
-        console.error('Error fetching orders:', error)
+('Error fetching orders:', error)
       } finally {
         setOrdersLoading(false)
       }
@@ -79,7 +79,7 @@ function OrdersTab() {
         }
       } catch (error) {
         setOrdersError(error instanceof Error ? error.message : 'Failed to fetch orders')
-        console.error('Error fetching orders:', error)
+('Error fetching orders:', error)
       } finally {
         setOrdersLoading(false)
       }

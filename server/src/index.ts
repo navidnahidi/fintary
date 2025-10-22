@@ -14,16 +14,12 @@ const config: ServerConfig = {
 // Initialize database extensions
 async function initializeDatabase() {
   try {
-    console.log('🔧 Initializing database extensions...');
-    
     // Enable pg_trgm extension for fuzzy matching
     await db.query('CREATE EXTENSION IF NOT EXISTS pg_trgm');
-    console.log('✅ pg_trgm extension enabled');
     
     // Test connection
     await db.testConnection();
   } catch (error) {
-    console.error('❌ Database initialization failed:', error);
     process.exit(1);
   }
 }
@@ -45,7 +41,6 @@ app.use(async (ctx: Koa.Context, next: Koa.Next) => {
   try {
     await next();
   } catch (err: any) {
-    console.error('❌ Server error:', err);
     ctx.status = err.status || 500;
     ctx.body = {
       success: false,
@@ -61,7 +56,7 @@ app.use(async (ctx: Koa.Context, next: Koa.Next) => {
   const start = Date.now();
   await next();
   const ms = Date.now() - start;
-  console.log(`${ctx.method} ${ctx.url} - ${ctx.status} - ${ms}ms`);
+(`${ctx.method} ${ctx.url} - ${ctx.status} - ${ms}ms`);
 });
 
 // Use routes
@@ -76,20 +71,19 @@ async function startServer() {
     
     // Start the server
     const server = app.listen(config.port, config.hostname, () => {
-      console.log(`🚀 Koa server running at http://${config.hostname}:${config.port}/`);
-      console.log(`📊 Health check available at http://${config.hostname}:${config.port}/health`);
-      console.log(`🔗 API endpoints:`);
-      console.log(`   - POST /v1/match - Run order matching`);
-      console.log(`   - GET  /v1/orders - Get all orders`);
-      console.log(`   - GET  /v1/transactions - Get all transactions`);
-      console.log(`   - GET  /v1/results - Get matching results`);
+(`🚀 Koa server running at http://${config.hostname}:${config.port}/`);
+(`📊 Health check available at http://${config.hostname}:${config.port}/health`);
+(`🔗 API endpoints:`);
+(`   - POST /v1/match - Run order matching`);
+(`   - GET  /v1/orders - Get all orders`);
+(`   - GET  /v1/transactions - Get all transactions`);
+(`   - GET  /v1/results - Get matching results`);
     });
 
     // Graceful shutdown
     const gracefulShutdown = (signal: string) => {
-      console.log(`${signal} received, shutting down gracefully`);
+(`${signal} received, shutting down gracefully`);
       server.close(() => {
-        console.log('🛑 Server stopped');
         process.exit(0);
       });
     };
@@ -97,7 +91,6 @@ async function startServer() {
     process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
     process.on('SIGINT', () => gracefulShutdown('SIGINT'));
   } catch (error) {
-    console.error('❌ Failed to start server:', error);
     process.exit(1);
   }
 }

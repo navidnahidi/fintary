@@ -33,7 +33,7 @@ function Content() {
       setMatchingResult(matchingResult)
       setActiveTab('results')
     } catch (error) {
-      console.error('Error running matching:', error)
+('Error running matching:', error)
       // Show error result
       const errorResult: MatchingResult = {
         matched: [],

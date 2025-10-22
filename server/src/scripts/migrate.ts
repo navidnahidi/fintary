@@ -16,8 +16,6 @@ class MigrationRunner {
 
   public async runMigrations(): Promise<void> {
     try {
-      console.log('🔄 Starting migration process...');
-
       // Test database connection
       await db.testConnection();
 
@@ -30,26 +28,23 @@ class MigrationRunner {
       // Run pending migrations
       for (const migration of migrationFiles) {
         if (!executedMigrations.includes(migration.name)) {
-          console.log(`📝 Running migration: ${migration.name}`);
+          `📝 Running migration: ${migration.name}`;
           await this.executeMigration(migration);
-          console.log(`✅ Migration ${migration.name} completed`);
+          `✅ Migration ${migration.name} completed`;
         } else {
-          console.log(
-            `⏭️  Migration ${migration.name} already executed, skipping`
-          );
+          `⏭️  Migration ${migration.name} already executed, skipping`;
         }
       }
 
-      console.log('🎉 All migrations completed successfully!');
+      ('🎉 All migrations completed successfully!');
     } catch (error) {
-      console.error('❌ Migration failed:', error);
       throw error;
     }
   }
 
   public async runSeeds(): Promise<void> {
     try {
-      console.log('🌱 Starting seed process...');
+      ('🌱 Starting seed process...');
 
       // Test database connection
       await db.testConnection();
@@ -63,24 +58,23 @@ class MigrationRunner {
       // Run pending seeds
       for (const seed of seedFiles) {
         if (!executedSeeds.includes(seed.name)) {
-          console.log(`🌱 Running seed: ${seed.name}`);
+          `🌱 Running seed: ${seed.name}`;
           await this.executeMigration(seed);
-          console.log(`✅ Seed ${seed.name} completed`);
+          `✅ Seed ${seed.name} completed`;
         } else {
-          console.log(`⏭️  Seed ${seed.name} already executed, skipping`);
+          `⏭️  Seed ${seed.name} already executed, skipping`;
         }
       }
 
-      console.log('🎉 All seeds completed successfully!');
+      ('🎉 All seeds completed successfully!');
     } catch (error) {
-      console.error('❌ Seed process failed:', error);
       throw error;
     }
   }
 
   public async resetDatabase(): Promise<void> {
     try {
-      console.log('🔄 Resetting database...');
+      ('🔄 Resetting database...');
 
       await db.testConnection();
 
@@ -89,9 +83,8 @@ class MigrationRunner {
       await db.query('DROP TABLE IF EXISTS orders CASCADE');
       await db.query('DROP TABLE IF EXISTS migrations CASCADE');
 
-      console.log('✅ Database reset completed');
+      ('✅ Database reset completed');
     } catch (error) {
-      console.error('❌ Database reset failed:', error);
       throw error;
     }
   }
@@ -106,20 +99,17 @@ class MigrationRunner {
                 ORDER BY executed_at
             `);
 
-      console.log('\n📊 Migration Status:');
-      console.log('==================');
+      ('\n📊 Migration Status:');
+      ('==================');
 
       if (result.rows.length === 0) {
-        console.log('No migrations have been executed yet.');
+        ('No migrations have been executed yet.');
       } else {
         result.rows.forEach((row: MigrationRow) => {
-          console.log(
-            `✅ ${row.migration_name} - ${row.executed_at} (${row.execution_time_ms}ms)`
-          );
+          `✅ ${row.migration_name} - ${row.executed_at} (${row.execution_time_ms}ms)`;
         });
       }
     } catch (error) {
-      console.error('❌ Failed to get migration status:', error);
       throw error;
     }
   }
@@ -136,7 +126,6 @@ class MigrationRunner {
         content: readFileSync(join(this.migrationsDir, file), 'utf-8'),
       }));
     } catch (error) {
-      console.error('❌ Failed to read migration files:', error);
       return [];
     }
   }
@@ -153,7 +142,6 @@ class MigrationRunner {
         content: readFileSync(join(this.seedsDir, file), 'utf-8'),
       }));
     } catch (error) {
-      console.error('❌ Failed to read seed files:', error);
       return [];
     }
   }
@@ -177,9 +165,8 @@ class MigrationRunner {
       await db.query(migration.content);
 
       const executionTime = Date.now() - startTime;
-      console.log(`⏱️  Migration ${migration.name} took ${executionTime}ms`);
+      `⏱️  Migration ${migration.name} took ${executionTime}ms`;
     } catch (error) {
-      console.error(`❌ Migration ${migration.name} failed:`, error);
       throw error;
     }
   }
@@ -210,7 +197,7 @@ async function main() {
         await runner.runSeeds();
         break;
       default:
-        console.log(`
+        `
 🔄 Migration Runner
 
 Usage: npm run migrate [command]
@@ -227,11 +214,10 @@ Examples:
   npm run migrate seed
   npm run migrate status
   npm run migrate fresh
-                `);
+                `;
         break;
     }
   } catch (error) {
-    console.error('❌ Command failed:', error);
     process.exit(1);
   } finally {
     await db.close();

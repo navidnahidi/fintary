@@ -46,7 +46,7 @@ function CSVUpload({ onOrdersUploaded }: CSVUploadProps) {
         throw new Error(result.error || 'Upload failed')
       }
     } catch (error) {
-      console.error('Error uploading CSV:', error)
+('Error uploading CSV:', error)
       setUploadStatus(`❌ Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
     } finally {
       setIsUploading(false)

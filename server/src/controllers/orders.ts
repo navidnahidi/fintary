@@ -42,8 +42,6 @@ export class OrdersController {
       throw new Error('Invalid request: orders array is required');
     }
 
-    console.log(`📊 Bulk inserting ${orders.length} orders`);
-
     const result = await orderModel.bulkInsertOrders(orders);
 
     return {

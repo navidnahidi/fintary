@@ -36,8 +36,6 @@ export class TransactionsController {
       throw new Error('Invalid request: transactions array is required');
     }
 
-    console.log(`📊 Bulk inserting ${transactions.length} transactions`);
-
     const result = await transactionModel.bulkInsertTransactions(transactions);
 
     return {

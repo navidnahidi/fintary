@@ -38,7 +38,7 @@ export const matchingActions = {
 
       return result.data;
     } catch (error) {
-      console.error("Error running matching:", error);
+("Error running matching:", error);
       throw error;
     }
   },

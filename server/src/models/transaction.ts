@@ -40,9 +40,6 @@ export class TransactionModel {
         );
 
         if (existingTransaction.rows.length > 0) {
-          console.log(
-            `⚠️ Transaction ${transaction.orderId} already exists, skipping`
-          );
           continue;
         }
 
@@ -64,13 +61,9 @@ export class TransactionModel {
         );
 
         insertedCount++;
-        console.log(
-          `✅ Inserted transaction: ${transaction.orderId} for ${transaction.customer}`
-        );
       } catch (error) {
         const errorMsg = `Failed to insert transaction ${transaction.orderId}: ${error instanceof Error ? error.message : 'Unknown error'}`;
         errors.push(errorMsg);
-        console.error(`❌ ${errorMsg}`);
       }
     }
 

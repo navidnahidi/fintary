@@ -20,7 +20,6 @@ class DatabaseConnection {
 
     // Handle pool errors
     this.pool.on('error', err => {
-      console.error('Unexpected error on idle client', err);
       process.exit(-1);
     });
   }
@@ -74,10 +73,8 @@ class DatabaseConnection {
   async testConnection(): Promise<boolean> {
     try {
       const result = await this.query<{ now: string }>('SELECT NOW()');
-      console.log('✅ Database connected successfully:', result.rows[0].now);
       return true;
     } catch (error) {
-      console.error('❌ Database connection failed:', error);
       return false;
     }
   }
@@ -108,26 +105,7 @@ class DatabaseConnection {
       ORDER BY similarity_score DESC
     `;
 
-    console.log(
-      `🔍 PostgreSQL similarity query for "${customerName}" with threshold ${threshold}`
-    );
-
     const result = await this.query(query, [customerName, threshold]);
-
-    // Debug: Show all similarity scores (even below threshold)
-    const debugQuery = `
-      SELECT 
-        customer,
-        similarity(customer, $1) as similarity_score
-      FROM orders 
-      ORDER BY similarity_score DESC
-    `;
-
-    const debugResult = await this.query(debugQuery, [customerName]);
-    console.log(`📊 All similarity scores for "${customerName}":`);
-    debugResult.rows.forEach(row => {
-      console.log(`   "${row.customer}" → ${row.similarity_score.toFixed(3)}`);
-    });
 
     return result.rows as Array<{
       id: number;

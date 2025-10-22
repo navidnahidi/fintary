@@ -50,7 +50,7 @@ export const orderActions = {
 
       return result;
     } catch (error) {
-      console.error("Error fetching orders:", error);
+("Error fetching orders:", error);
       throw error;
     }
   },
@@ -71,7 +71,7 @@ export const orderActions = {
 
       return result.data;
     } catch (error) {
-      console.error("Error fetching order:", error);
+("Error fetching order:", error);
       throw error;
     }
   },

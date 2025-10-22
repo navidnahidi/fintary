@@ -26,10 +26,6 @@ export class OrderTransactionMatcher {
     const unmatchedOrders: Order[] = [];
     const unmatchedTransactions: Transaction[] = [];
 
-    console.log(
-      `🔍 Starting PostgreSQL-only matching process with ${orders.length} orders and ${clientTransactions.length} transactions`
-    );
-
     // Use PostgreSQL similarity function for all matching
     const allMatches: {
       order: Order;
@@ -65,10 +61,6 @@ export class OrderTransactionMatcher {
     // Sort by score (highest first)
     allMatches.sort((a, b) => b.score - a.score);
 
-    console.log(
-      `📊 Found ${allMatches.length} potential matches above threshold`
-    );
-
     // Greedily assign matches (highest scores first) - Allow multiple transactions per order
     const usedTransactions = new Set<string>();
     const orderMap = new Map<number, MatchedOrder>();
@@ -79,9 +71,6 @@ export class OrderTransactionMatcher {
         if (orderMap.has(match.order.id!)) {
           // Add transaction to existing matched order
           orderMap.get(match.order.id!)!.txns.push(match.transaction);
-          console.log(
-            `✅ Added Transaction ${match.transaction.orderId} to existing Order ${match.order.orderId} (Score: ${(match.score * 100).toFixed(1)}%)`
-          );
         } else {
           // Create new matched order entry
           const matchedOrder: MatchedOrder = {
@@ -90,9 +79,6 @@ export class OrderTransactionMatcher {
             matchScore: match.score,
           };
           orderMap.set(match.order.id!, matchedOrder);
-          console.log(
-            `✅ Matched: Order ${match.order.orderId} with Transaction ${match.transaction.orderId} (Score: ${(match.score * 100).toFixed(1)}%)`
-          );
         }
         usedTransactions.add(match.transaction.orderId);
       }
@@ -352,34 +338,14 @@ export async function runOrderMatchingWithTransactions(
       priceCents: row.price_cents,
     }));
 
-    console.log(
-      `📊 Matching ${orders.length} orders with ${clientTransactions.length} client transactions`
-    );
-    console.log(
-      '📋 Available orders:',
-      orders.map(o => `${o.customer} | ${o.orderId} | ${o.item}`)
-    );
-    console.log(
-      '📋 Client transactions:',
-      clientTransactions.map(t => `${t.customer} | ${t.orderId} | ${t.item}`)
-    );
-
     // Run matching algorithm
     const result = await matcher.matchOrdersWithClientTransactions(
       orders,
       clientTransactions
     );
 
-    console.log('\n=== CLIENT TRANSACTION MATCHING RESULTS ===\n');
-    console.log(`✅ Matched Orders: ${result.matched.length}`);
-    console.log(`❌ Unmatched Orders: ${result.unmatchedOrders.length}`);
-    console.log(
-      `❌ Unmatched Transactions: ${result.unmatchedTransactions.length}\n`
-    );
-
     return result;
   } catch (error) {
-    console.error('❌ Error in client transaction matching:', error);
     throw error;
   }
 }
@@ -394,61 +360,35 @@ export async function runOrderMatching(): Promise<void> {
     // Run the matching
     const result = await matcher.matchOrdersWithTransactions();
 
-    console.log('\n=== ORDER-TRANSACTION MATCHING RESULTS ===\n');
-
-    console.log(`✅ Matched Orders: ${result.matched.length}`);
-    console.log(`❌ Unmatched Orders: ${result.unmatchedOrders.length}`);
-    console.log(
-      `❌ Unmatched Transactions: ${result.unmatchedTransactions.length}\n\n`
-    );
+    `✅ Matched Orders: ${result.matched.length}`;
+    `❌ Unmatched Orders: ${result.unmatchedOrders.length}`;
+    `❌ Unmatched Transactions: ${result.unmatchedTransactions.length}\n\n`;
 
     if (result.matched.length > 0) {
-      console.log('✅ MATCHED ORDERS:');
-      console.log('==================================================');
       result.matched.forEach((match, index) => {
-        console.log(
-          `${index + 1}. ${match.order.customer} (${match.order.orderId}) - ${match.order.item} - $${(match.order.priceCents / 100).toFixed(2)}`
-        );
-        console.log(`   Match Score: ${match.matchScore.toFixed(3)}`);
+        `${index + 1}. ${match.order.customer} (${match.order.orderId}) - ${match.order.item} - $${(match.order.priceCents / 100).toFixed(2)}`;
+        `   Match Score: ${match.matchScore.toFixed(3)}`;
         match.txns.forEach(txn => {
-          console.log(
-            `   - ${txn.customer} (${txn.orderId}) - ${txn.txnType}: $${(txn.txnAmountCents / 100).toFixed(2)}`
-          );
+          `   - ${txn.customer} (${txn.orderId}) - ${txn.txnType}: $${(txn.txnAmountCents / 100).toFixed(2)}`;
         });
-        console.log('');
       });
     }
 
     if (result.unmatchedOrders.length > 0) {
-      console.log('❌ UNMATCHED ORDERS:');
-      console.log('==================================================');
       result.unmatchedOrders.forEach((order, index) => {
-        console.log(
-          `${index + 1}. ${order.customer} (${order.orderId}) - ${order.item} - $${(order.priceCents / 100).toFixed(2)}`
-        );
+        `${index + 1}. ${order.customer} (${order.orderId}) - ${order.item} - $${(order.priceCents / 100).toFixed(2)}`;
       });
-      console.log('');
     }
 
     if (result.unmatchedTransactions.length > 0) {
-      console.log('❌ UNMATCHED TRANSACTIONS:');
-      console.log('==================================================');
       result.unmatchedTransactions.forEach((txn, index) => {
-        console.log(
-          `${index + 1}. ${txn.customer} (${txn.orderId}) - ${txn.txnType}: $${(txn.txnAmountCents / 100).toFixed(2)}`
-        );
+        `${index + 1}. ${txn.customer} (${txn.orderId}) - ${txn.txnType}: $${(txn.txnAmountCents / 100).toFixed(2)}`;
       });
-      console.log('');
     }
 
-    console.log('📊 SUMMARY:');
-    console.log(
-      `Total Orders: ${result.matched.length + result.unmatchedOrders.length}`
-    );
-    console.log(
-      `Total Transactions: ${result.matched.reduce((sum, m) => sum + m.txns.length, 0) + result.unmatchedTransactions.length}`
-    );
-    console.log(`Successfully Matched: ${result.matched.length}`);
+    `Total Orders: ${result.matched.length + result.unmatchedOrders.length}`;
+    `Total Transactions: ${result.matched.reduce((sum, m) => sum + m.txns.length, 0) + result.unmatchedTransactions.length}`;
+    `Successfully Matched: ${result.matched.length}`;
 
     const totalOrders = result.matched.length + result.unmatchedOrders.length;
     const totalTransactions =
@@ -459,9 +399,8 @@ export async function runOrderMatching(): Promise<void> {
         ? (result.matched.length / Math.min(totalOrders, totalTransactions)) *
           100
         : 0;
-    console.log(`Match Rate: ${matchRate.toFixed(1)}%`);
+    `Match Rate: ${matchRate.toFixed(1)}%`;
   } catch (error) {
-    console.error('❌ Error running order matching:', error);
   } finally {
     // Close database connection
     await db.close();

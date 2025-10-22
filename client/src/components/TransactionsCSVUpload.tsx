@@ -28,7 +28,7 @@ function TransactionsCSVUpload({ onTransactionsUploaded }: TransactionsCSVUpload
       setUploadStatus(`✅ Successfully loaded ${transactions.length} transactions`)
       onTransactionsUploaded(transactions)
     } catch (error) {
-      console.error('Error processing CSV:', error)
+('Error processing CSV:', error)
       setUploadStatus(`❌ Processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
     } finally {
       setIsUploading(false)
