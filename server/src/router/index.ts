@@ -4,7 +4,6 @@ import { Context } from 'koa';
 import { runOrderMatchingWithTransactions } from '../controllers/orderMatcher';
 import { ordersController } from '../controllers/orders';
 import { transactionsController } from '../controllers/transactions';
-import { resultsController } from '../controllers/results';
 
 const router = new Router();
 
@@ -144,21 +143,5 @@ router.get('/v1/transactions', async (ctx: Context) => {
   }
 });
 
-// Get matching results endpoint
-router.get('/v1/results', async (ctx: Context) => {
-  try {
-    // Use controller to handle business logic and formatting
-    const result = await resultsController.getResults();
-
-    ctx.body = result;
-  } catch (error) {
-    ctx.status = 500;
-    ctx.body = {
-      success: false,
-      error: 'Internal server error',
-      timestamp: new Date().toISOString(),
-    };
-  }
-});
 
 export default router;
