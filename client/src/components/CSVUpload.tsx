@@ -26,6 +26,7 @@ function CSVUpload({ onOrdersUploaded }: CSVUploadProps) {
       }
 
       // Upload to server
+      // TODO: Use the correct API endpoint
       const response = await fetch('http://localhost:3000/v1/orders/bulk', {
         method: 'POST',
         headers: {
