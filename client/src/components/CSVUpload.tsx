@@ -5,6 +5,8 @@ interface CSVUploadProps {
   onOrdersUploaded: () => void
 }
 
+const API_BASE_URL = "http://localhost:3000";
+
 function CSVUpload({ onOrdersUploaded }: CSVUploadProps) {
   const [isUploading, setIsUploading] = useState(false)
   const [uploadStatus, setUploadStatus] = useState<string | null>(null)
@@ -27,7 +29,7 @@ function CSVUpload({ onOrdersUploaded }: CSVUploadProps) {
 
       // Upload to server
       // TODO: Use the correct API endpoint
-      const response = await fetch('http://localhost:3000/v1/orders/bulk', {
+      const response = await fetch(`${API_BASE_URL}/v1/orders/bulk`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
