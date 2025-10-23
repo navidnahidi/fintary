@@ -1,4 +1,5 @@
 // Component prop types for React components
+import { MatchingResult } from './domain';
 
 export interface DashboardProps {
   matchingResult: MatchingResult | null;

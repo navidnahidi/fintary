@@ -55,6 +55,42 @@ export class OrdersController {
       timestamp: new Date().toISOString(),
     };
   }
+
+  /**
+   * Update an existing order
+   */
+  async updateOrder(orderId: number, orderData: Partial<OrderInput>) {
+    if (!orderId || !orderData) {
+      throw new Error('Invalid request: order ID and data are required');
+    }
+
+    const result = await orderModel.updateOrder(orderId, orderData);
+
+    return {
+      success: true,
+      data: result,
+      message: 'Order updated successfully',
+      timestamp: new Date().toISOString(),
+    };
+  }
+
+  /**
+   * Delete an order
+   */
+  async deleteOrder(orderId: number) {
+    if (!orderId) {
+      throw new Error('Invalid request: order ID is required');
+    }
+
+    const result = await orderModel.deleteOrder(orderId);
+
+    return {
+      success: true,
+      data: result,
+      message: 'Order deleted successfully',
+      timestamp: new Date().toISOString(),
+    };
+  }
 }
 
 export const ordersController = new OrdersController();

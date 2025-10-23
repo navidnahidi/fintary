@@ -36,7 +36,9 @@ router.get('/', async (ctx: Context) => {
 // Order matching with transactions endpoint
 router.post('/v1/match/transactions', async (ctx: Context) => {
   try {
-    const { transactions } = ctx.request.body as { transactions: Transaction[] };
+    const { transactions } = ctx.request.body as {
+      transactions: Transaction[];
+    };
 
     if (!transactions || !Array.isArray(transactions)) {
       ctx.status = 400;
@@ -89,7 +91,9 @@ router.post('/v1/orders/bulk', async (ctx: Context) => {
 // Bulk insert transactions endpoint
 router.post('/v1/transactions/bulk', async (ctx: Context) => {
   try {
-    const { transactions } = ctx.request.body as { transactions: TransactionInput[] };
+    const { transactions } = ctx.request.body as {
+      transactions: TransactionInput[];
+    };
 
     // Use controller to handle business logic and formatting
     const result =
@@ -122,6 +126,61 @@ router.get('/v1/orders', async (ctx: Context) => {
     ctx.body = {
       success: false,
       error: 'Internal server error',
+      timestamp: new Date().toISOString(),
+    };
+  }
+});
+
+// Update order endpoint
+router.put('/v1/orders/:id', async (ctx: Context) => {
+  try {
+    const orderId = parseInt(ctx.params.id);
+    const orderData = ctx.request.body as Partial<OrderInput>;
+
+    if (isNaN(orderId)) {
+      ctx.status = 400;
+      ctx.body = {
+        success: false,
+        error: 'Invalid order ID',
+        timestamp: new Date().toISOString(),
+      };
+      return;
+    }
+
+    const result = await ordersController.updateOrder(orderId, orderData);
+    ctx.body = result;
+  } catch (error) {
+    ctx.status = 500;
+    ctx.body = {
+      success: false,
+      error: error instanceof Error ? error.message : 'Internal server error',
+      timestamp: new Date().toISOString(),
+    };
+  }
+});
+
+// Delete order endpoint
+router.delete('/v1/orders/:id', async (ctx: Context) => {
+  try {
+    const orderId = parseInt(ctx.params.id);
+
+    if (isNaN(orderId)) {
+      ctx.status = 400;
+      ctx.body = {
+        success: false,
+        error: 'Invalid order ID',
+        timestamp: new Date().toISOString(),
+      };
+      return;
+    }
+
+    const result = await ordersController.deleteOrder(orderId);
+    ctx.body = result;
+  } catch (error) {
+    ctx.status = 500;
+    ctx.body = {
+      success: false,
+      error: error instanceof Error ? error.message : 'Internal server error',
       timestamp: new Date().toISOString(),
     };
   }

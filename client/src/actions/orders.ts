@@ -75,4 +75,52 @@ export const orderActions = {
       throw error;
     }
   },
+
+  async updateOrder(id: number, orderData: Partial<Order>): Promise<Order> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/v1/orders/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(orderData),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.error || "Failed to update order");
+      }
+
+      return result.data;
+    } catch (error) {
+      console.error("Error updating order:", error);
+      throw error;
+    }
+  },
+
+  async deleteOrder(id: number): Promise<void> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/v1/orders/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.error || "Failed to delete order");
+      }
+    } catch (error) {
+      console.error("Error deleting order:", error);
+      throw error;
+    }
+  },
 };

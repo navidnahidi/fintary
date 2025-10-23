@@ -100,6 +100,95 @@ export class OrderModel {
 
     return result.rows as OrderData[];
   }
+
+  /**
+   * Get unmatched orders from database
+   */
+  async getUnmatchedOrders(): Promise<OrderData[]> {
+    const result = await db.query(`
+      SELECT o.* FROM orders o
+      LEFT JOIN transactions t ON o.id = t.matched_order_id
+      WHERE t.matched_order_id IS NULL
+      ORDER BY o.id
+    `);
+
+    return result.rows as OrderData[];
+  }
+
+  /**
+   * Update an existing order
+   */
+  async updateOrder(
+    orderId: number,
+    orderData: Partial<OrderInput>
+  ): Promise<OrderData> {
+    // Build dynamic update query based on provided fields
+    const updateFields: string[] = [];
+    const values: unknown[] = [];
+    let paramIndex = 1;
+
+    if (orderData.customer !== undefined) {
+      updateFields.push(`customer = $${paramIndex++}`);
+      values.push(orderData.customer);
+    }
+    if (orderData.orderId !== undefined) {
+      updateFields.push(`order_id = $${paramIndex++}`);
+      values.push(orderData.orderId);
+    }
+    if (orderData.date !== undefined) {
+      updateFields.push(`order_date = $${paramIndex++}`);
+      values.push(orderData.date);
+    }
+    if (orderData.item !== undefined) {
+      updateFields.push(`item = $${paramIndex++}`);
+      values.push(orderData.item);
+    }
+    if (orderData.priceCents !== undefined) {
+      updateFields.push(`price_cents = $${paramIndex++}`);
+      values.push(orderData.priceCents);
+    }
+
+    if (updateFields.length === 0) {
+      throw new Error('No fields to update');
+    }
+
+    // Add updated_at timestamp
+    updateFields.push(`updated_at = CURRENT_TIMESTAMP`);
+
+    // Add orderId as the last parameter
+    values.push(orderId);
+
+    const query = `
+      UPDATE orders 
+      SET ${updateFields.join(', ')}
+      WHERE id = $${paramIndex}
+      RETURNING id, customer, order_id, order_date, item, price_cents
+    `;
+
+    const result = await db.query(query, values);
+
+    if (result.rows.length === 0) {
+      throw new Error('Order not found');
+    }
+
+    return result.rows[0] as OrderData;
+  }
+
+  /**
+   * Delete an order
+   */
+  async deleteOrder(orderId: number): Promise<boolean> {
+    const result = await db.query(
+      'DELETE FROM orders WHERE id = $1 RETURNING id',
+      [orderId]
+    );
+
+    if (result.rows.length === 0) {
+      throw new Error('Order not found');
+    }
+
+    return true;
+  }
 }
 
 export const orderModel = new OrderModel();

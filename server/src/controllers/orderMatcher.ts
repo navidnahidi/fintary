@@ -90,7 +90,11 @@ export class OrderTransactionMatcher {
     matched.push(...orderMap.values());
 
     // Find unmatched orders and transactions
-    const matchedOrderIds = new Set(matched.map(m => m.order.id).filter((id): id is number => id !== undefined));
+    const matchedOrderIds = new Set(
+      matched
+        .map(m => m.order.id)
+        .filter((id): id is number => id !== undefined)
+    );
     const matchedTransactionIds = new Set();
 
     // Collect all matched transaction IDs
@@ -100,7 +104,9 @@ export class OrderTransactionMatcher {
       }
     }
 
-    unmatchedOrders.push(...orders.filter(o => o.id && !matchedOrderIds.has(o.id)));
+    unmatchedOrders.push(
+      ...orders.filter(o => o.id && !matchedOrderIds.has(o.id))
+    );
     unmatchedTransactions.push(
       ...clientTransactions.filter(t => !matchedTransactionIds.has(t.orderId))
     );
