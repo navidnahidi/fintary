@@ -19,7 +19,7 @@ class DatabaseConnection {
     this.pool = new Pool(config);
 
     // Handle pool errors
-    this.pool.on('error', err => {
+    this.pool.on('error', _err => {
       process.exit(-1);
     });
   }
@@ -72,7 +72,7 @@ class DatabaseConnection {
    */
   async testConnection(): Promise<boolean> {
     try {
-      const result = await this.query<{ now: string }>('SELECT NOW()');
+      await this.query<{ now: string }>('SELECT NOW()');
       return true;
     } catch (error) {
       return false;

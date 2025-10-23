@@ -4,6 +4,7 @@ import { Context } from 'koa';
 import { runOrderMatchingWithTransactions } from '../controllers/orderMatcher';
 import { ordersController } from '../controllers/orders';
 import { transactionsController } from '../controllers/transactions';
+import { Transaction, OrderInput, TransactionInput } from '../models/types';
 
 const router = new Router();
 
@@ -35,7 +36,7 @@ router.get('/', async (ctx: Context) => {
 // Order matching with transactions endpoint
 router.post('/v1/match/transactions', async (ctx: Context) => {
   try {
-    const { transactions } = ctx.request.body as { transactions: any[] };
+    const { transactions } = ctx.request.body as { transactions: Transaction[] };
 
     if (!transactions || !Array.isArray(transactions)) {
       ctx.status = 400;
@@ -69,7 +70,7 @@ router.post('/v1/match/transactions', async (ctx: Context) => {
 // Bulk insert orders endpoint
 router.post('/v1/orders/bulk', async (ctx: Context) => {
   try {
-    const { orders } = ctx.request.body as { orders: any[] };
+    const { orders } = ctx.request.body as { orders: OrderInput[] };
 
     // Use controller to handle business logic and formatting
     const result = await ordersController.bulkInsertOrders(orders);
@@ -88,7 +89,7 @@ router.post('/v1/orders/bulk', async (ctx: Context) => {
 // Bulk insert transactions endpoint
 router.post('/v1/transactions/bulk', async (ctx: Context) => {
   try {
-    const { transactions } = ctx.request.body as { transactions: any[] };
+    const { transactions } = ctx.request.body as { transactions: TransactionInput[] };
 
     // Use controller to handle business logic and formatting
     const result =

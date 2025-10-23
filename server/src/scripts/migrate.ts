@@ -15,102 +15,86 @@ class MigrationRunner {
   }
 
   public async runMigrations(): Promise<void> {
-    try {
-      // Test database connection
-      await db.testConnection();
+    // Test database connection
+    await db.testConnection();
 
-      // Get all migration files
-      const migrationFiles = this.getMigrationFiles();
+    // Get all migration files
+    const migrationFiles = this.getMigrationFiles();
 
-      // Check which migrations have already been run
-      const executedMigrations = await this.getExecutedMigrations();
+    // Check which migrations have already been run
+    const executedMigrations = await this.getExecutedMigrations();
 
-      // Run pending migrations
-      for (const migration of migrationFiles) {
-        if (!executedMigrations.includes(migration.name)) {
-          `📝 Running migration: ${migration.name}`;
-          await this.executeMigration(migration);
-          `✅ Migration ${migration.name} completed`;
-        } else {
-          `⏭️  Migration ${migration.name} already executed, skipping`;
-        }
+    // Run pending migrations
+    for (const migration of migrationFiles) {
+      if (!executedMigrations.includes(migration.name)) {
+        `📝 Running migration: ${migration.name}`;
+        await this.executeMigration(migration);
+        `✅ Migration ${migration.name} completed`;
+      } else {
+        `⏭️  Migration ${migration.name} already executed, skipping`;
       }
-
-      ('🎉 All migrations completed successfully!');
-    } catch (error) {
-      throw error;
     }
+
+    ('🎉 All migrations completed successfully!');
   }
 
   public async runSeeds(): Promise<void> {
-    try {
-      ('🌱 Starting seed process...');
+    ('🌱 Starting seed process...');
 
-      // Test database connection
-      await db.testConnection();
+    // Test database connection
+    await db.testConnection();
 
-      // Get all seed files
-      const seedFiles = this.getSeedFiles();
+    // Get all seed files
+    const seedFiles = this.getSeedFiles();
 
-      // Check which seeds have already been run
-      const executedSeeds = await this.getExecutedMigrations();
+    // Check which seeds have already been run
+    const executedSeeds = await this.getExecutedMigrations();
 
-      // Run pending seeds
-      for (const seed of seedFiles) {
-        if (!executedSeeds.includes(seed.name)) {
-          `🌱 Running seed: ${seed.name}`;
-          await this.executeMigration(seed);
-          `✅ Seed ${seed.name} completed`;
-        } else {
-          `⏭️  Seed ${seed.name} already executed, skipping`;
-        }
+    // Run pending seeds
+    for (const seed of seedFiles) {
+      if (!executedSeeds.includes(seed.name)) {
+        `🌱 Running seed: ${seed.name}`;
+        await this.executeMigration(seed);
+        `✅ Seed ${seed.name} completed`;
+      } else {
+        `⏭️  Seed ${seed.name} already executed, skipping`;
       }
-
-      ('🎉 All seeds completed successfully!');
-    } catch (error) {
-      throw error;
     }
+
+    ('🎉 All seeds completed successfully!');
   }
 
   public async resetDatabase(): Promise<void> {
-    try {
-      ('🔄 Resetting database...');
+    ('🔄 Resetting database...');
 
-      await db.testConnection();
+    await db.testConnection();
 
-      // Drop all tables
-      await db.query('DROP TABLE IF EXISTS transactions CASCADE');
-      await db.query('DROP TABLE IF EXISTS orders CASCADE');
-      await db.query('DROP TABLE IF EXISTS migrations CASCADE');
+    // Drop all tables
+    await db.query('DROP TABLE IF EXISTS transactions CASCADE');
+    await db.query('DROP TABLE IF EXISTS orders CASCADE');
+    await db.query('DROP TABLE IF EXISTS migrations CASCADE');
 
-      ('✅ Database reset completed');
-    } catch (error) {
-      throw error;
-    }
+    ('✅ Database reset completed');
   }
 
   public async showStatus(): Promise<void> {
-    try {
-      await db.testConnection();
+    await db.testConnection();
 
-      const result = await db.query<MigrationRow>(`
-                SELECT migration_name, executed_at, checksum, execution_time_ms 
-                FROM migrations 
-                ORDER BY executed_at
-            `);
+    const result = await db.query<MigrationRow>(`
+              SELECT migration_name, executed_at, checksum, execution_time_ms 
+              FROM migrations 
+              ORDER BY executed_at
+          `);
 
-      ('\n📊 Migration Status:');
-      ('==================');
+    ('\n📊 Migration Status:');
+    ('==================');
 
-      if (result.rows.length === 0) {
-        ('No migrations have been executed yet.');
-      } else {
-        result.rows.forEach((row: MigrationRow) => {
-          `✅ ${row.migration_name} - ${row.executed_at} (${row.execution_time_ms}ms)`;
-        });
-      }
-    } catch (error) {
-      throw error;
+    if (result.rows.length === 0) {
+      ('No migrations have been executed yet.');
+    } else {
+      result.rows.forEach((row: MigrationRow) => {
+        `✅ ${row.migration_name} - ${row.executed_at} (${row.execution_time_ms}ms)`;
+      });
     }
   }
 
@@ -161,14 +145,10 @@ class MigrationRunner {
   private async executeMigration(migration: MigrationFile): Promise<void> {
     const startTime = Date.now();
 
-    try {
-      await db.query(migration.content);
+    await db.query(migration.content);
 
-      const executionTime = Date.now() - startTime;
-      `⏱️  Migration ${migration.name} took ${executionTime}ms`;
-    } catch (error) {
-      throw error;
-    }
+    const executionTime = Date.now() - startTime;
+    `⏱️  Migration ${migration.name} took ${executionTime}ms`;
   }
 }
 

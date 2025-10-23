@@ -1,5 +1,6 @@
 // Transactions controller - handles business logic and data formatting
 import { transactionModel } from '../models/transaction';
+import { TransactionInput } from '../models/types';
 
 export class TransactionsController {
   /**
@@ -31,7 +32,7 @@ export class TransactionsController {
   /**
    * Bulk insert transactions with proper validation and formatting
    */
-  async bulkInsertTransactions(transactions: any[]) {
+  async bulkInsertTransactions(transactions: TransactionInput[]) {
     if (!transactions || !Array.isArray(transactions)) {
       throw new Error('Invalid request: transactions array is required');
     }

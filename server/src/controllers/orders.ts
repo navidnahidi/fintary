@@ -1,6 +1,6 @@
 // Orders controller - handles business logic and data formatting
 import { orderModel } from '../models/order';
-import { Order } from '../models/types';
+import { Order, OrderInput } from '../models/types';
 
 export class OrdersController {
   /**
@@ -37,7 +37,7 @@ export class OrdersController {
   /**
    * Bulk insert orders with proper validation and formatting
    */
-  async bulkInsertOrders(orders: any[]) {
+  async bulkInsertOrders(orders: OrderInput[]) {
     if (!orders || !Array.isArray(orders)) {
       throw new Error('Invalid request: orders array is required');
     }

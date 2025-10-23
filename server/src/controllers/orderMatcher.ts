@@ -67,17 +67,20 @@ export class OrderTransactionMatcher {
     for (const match of allMatches) {
       if (!usedTransactions.has(match.transaction.orderId)) {
         // Check if this order already has transactions
-        if (orderMap.has(match.order.id!)) {
+        if (match.order.id && orderMap.has(match.order.id)) {
           // Add transaction to existing matched order
-          orderMap.get(match.order.id!)!.txns.push(match.transaction);
-        } else {
+          const existingMatch = orderMap.get(match.order.id);
+          if (existingMatch) {
+            existingMatch.txns.push(match.transaction);
+          }
+        } else if (match.order.id) {
           // Create new matched order entry
           const matchedOrder: MatchedOrder = {
             order: match.order,
             txns: [match.transaction],
             matchScore: match.score,
           };
-          orderMap.set(match.order.id!, matchedOrder);
+          orderMap.set(match.order.id, matchedOrder);
         }
         usedTransactions.add(match.transaction.orderId);
       }
@@ -87,7 +90,7 @@ export class OrderTransactionMatcher {
     matched.push(...orderMap.values());
 
     // Find unmatched orders and transactions
-    const matchedOrderIds = new Set(matched.map(m => m.order.id!));
+    const matchedOrderIds = new Set(matched.map(m => m.order.id).filter((id): id is number => id !== undefined));
     const matchedTransactionIds = new Set();
 
     // Collect all matched transaction IDs
@@ -97,7 +100,7 @@ export class OrderTransactionMatcher {
       }
     }
 
-    unmatchedOrders.push(...orders.filter(o => !matchedOrderIds.has(o.id!)));
+    unmatchedOrders.push(...orders.filter(o => o.id && !matchedOrderIds.has(o.id)));
     unmatchedTransactions.push(
       ...clientTransactions.filter(t => !matchedTransactionIds.has(t.orderId))
     );
@@ -123,29 +126,25 @@ export async function runOrderMatchingWithTransactions(
 ): Promise<MatchingResult> {
   const matcher = new OrderTransactionMatcher();
 
-  try {
-    // Reset matches for fresh run
-    await matcher.resetMatches();
+  // Reset matches for fresh run
+  await matcher.resetMatches();
 
-    // Get all orders from database
-    const orderData = await orderModel.getAllOrders();
-    const orders: Order[] = orderData.map(row => ({
-      id: row.id,
-      customer: row.customer,
-      orderId: row.order_id,
-      date: row.order_date,
-      item: row.item,
-      priceCents: row.price_cents,
-    }));
+  // Get all orders from database
+  const orderData = await orderModel.getAllOrders();
+  const orders: Order[] = orderData.map(row => ({
+    id: row.id,
+    customer: row.customer,
+    orderId: row.order_id,
+    date: row.order_date,
+    item: row.item,
+    priceCents: row.price_cents,
+  }));
 
-    // Run matching algorithm
-    const result = await matcher.matchOrdersWithClientTransactions(
-      orders,
-      clientTransactions
-    );
+  // Run matching algorithm
+  const result = await matcher.matchOrdersWithClientTransactions(
+    orders,
+    clientTransactions
+  );
 
-    return result;
-  } catch (error) {
-    throw error;
-  }
+  return result;
 }
