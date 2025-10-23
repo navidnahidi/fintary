@@ -36,13 +36,6 @@ function stringSimilarity(str1: string, str2: string): number {
   );
 }
 
-function dateDifferenceInDays(date1: string, date2: string): number {
-  const d1 = new Date(date1);
-  const d2 = new Date(date2);
-  const diffTime = Math.abs(d2.getTime() - d1.getTime());
-  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-}
-
 function calculateMatchScore(order: Order, transaction: Transaction): number {
   // Only use customer name similarity for matching
   const customerSimilarity = stringSimilarity(

@@ -20,8 +20,8 @@ interface TransactionsTabProps {
 }
 
 function TransactionsTab({ onTransactionsUploaded, transactions, setTransactions }: TransactionsTabProps) {
-  const [transactionsLoading, setTransactionsLoading] = useState(false)
-  const [transactionsError, setTransactionsError] = useState<string | null>(null)
+  const [transactionsLoading] = useState(false)
+  const [transactionsError] = useState<string | null>(null)
 
   const handleTransactionsUploaded = (newTransactions: Transaction[]) => {
     // Store transactions locally

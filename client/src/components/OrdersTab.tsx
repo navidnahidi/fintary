@@ -46,7 +46,7 @@ function OrdersTab() {
         }
       } catch (error) {
         setOrdersError(error instanceof Error ? error.message : 'Failed to fetch orders')
-('Error fetching orders:', error)
+        console.log('Error fetching orders:', error)
       } finally {
         setOrdersLoading(false)
       }
@@ -59,7 +59,7 @@ function OrdersTab() {
     setOrdersPagination(prev => ({ ...prev, page: newPage }))
   }
 
-  const handleOrdersUploaded = (newOrders: Order[]) => {
+  const handleOrdersUploaded = () => {
     // Refresh the orders list after CSV upload
     const fetchOrders = async () => {
       setOrdersLoading(true)
@@ -79,7 +79,7 @@ function OrdersTab() {
         }
       } catch (error) {
         setOrdersError(error instanceof Error ? error.message : 'Failed to fetch orders')
-('Error fetching orders:', error)
+        console.log('Error fetching orders:', error)
       } finally {
         setOrdersLoading(false)
       }

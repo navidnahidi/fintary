@@ -1,7 +1,8 @@
 import { useState } from 'react'
+import { Order } from '../types/domain'
 
 interface CSVUploadProps {
-  onOrdersUploaded: (orders: any[]) => void
+  onOrdersUploaded: () => void
 }
 
 function CSVUpload({ onOrdersUploaded }: CSVUploadProps) {
@@ -41,31 +42,31 @@ function CSVUpload({ onOrdersUploaded }: CSVUploadProps) {
       
       if (result.success) {
         setUploadStatus(`✅ Successfully uploaded ${result.data.insertedCount} orders`)
-        onOrdersUploaded(orders)
+        onOrdersUploaded()
       } else {
         throw new Error(result.error || 'Upload failed')
       }
     } catch (error) {
-('Error uploading CSV:', error)
+      console.log('Error uploading CSV:', error)
       setUploadStatus(`❌ Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
     } finally {
       setIsUploading(false)
     }
   }
 
-  const parseCSV = (csvText: string): any[] => {
+  const parseCSV = (csvText: string): Order[] => {
     const lines = csvText.split('\n').filter(line => line.trim())
     if (lines.length < 2) return []
 
     const headers = lines[0].split(',').map(h => h.trim().toLowerCase())
-    const orders = []
+    const orders: Order[] = []
 
     for (let i = 1; i < lines.length; i++) {
       const values = lines[i].split(',').map(v => v.trim())
       
       if (values.length !== headers.length) continue
 
-      const order: any = {}
+      const order: Partial<Order> = {}
       headers.forEach((header, index) => {
         const value = values[index]
         
@@ -85,16 +86,17 @@ function CSVUpload({ onOrdersUploaded }: CSVUploadProps) {
             break
           case 'price':
           case 'pricecents':
-          case 'price_cents':
+          case 'price_cents': {
             const price = parseFloat(value)
             order.priceCents = isNaN(price) ? 0 : Math.round(price * 100)
             break
+          }
         }
       })
 
       // Validate required fields
       if (order.customer && order.orderId && order.item && order.priceCents !== undefined) {
-        orders.push(order)
+        orders.push(order as Order)
       }
     }
 

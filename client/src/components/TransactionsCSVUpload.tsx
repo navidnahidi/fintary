@@ -1,7 +1,8 @@
 import { useState } from 'react'
+import { Transaction } from '../types/domain'
 
 interface TransactionsCSVUploadProps {
-  onTransactionsUploaded: (transactions: any[]) => void
+  onTransactionsUploaded: (transactions: Transaction[]) => void
 }
 
 function TransactionsCSVUpload({ onTransactionsUploaded }: TransactionsCSVUploadProps) {
@@ -28,26 +29,26 @@ function TransactionsCSVUpload({ onTransactionsUploaded }: TransactionsCSVUpload
       setUploadStatus(`✅ Successfully loaded ${transactions.length} transactions`)
       onTransactionsUploaded(transactions)
     } catch (error) {
-('Error processing CSV:', error)
+      console.log('Error processing CSV:', error)
       setUploadStatus(`❌ Processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
     } finally {
       setIsUploading(false)
     }
   }
 
-  const parseCSV = (csvText: string): any[] => {
+  const parseCSV = (csvText: string): Transaction[] => {
     const lines = csvText.split('\n').filter(line => line.trim())
     if (lines.length < 2) return []
 
     const headers = lines[0].split(',').map(h => h.trim().toLowerCase())
-    const transactions = []
+    const transactions: Transaction[] = []
 
     for (let i = 1; i < lines.length; i++) {
       const values = lines[i].split(',').map(v => v.trim())
       
       if (values.length !== headers.length) continue
 
-      const transaction: any = {}
+      const transaction: Partial<Transaction> = {}
       headers.forEach((header, index) => {
         const value = values[index]
         
@@ -67,10 +68,11 @@ function TransactionsCSVUpload({ onTransactionsUploaded }: TransactionsCSVUpload
             break
           case 'price':
           case 'pricecents':
-          case 'price_cents':
+          case 'price_cents': {
             const price = parseFloat(value)
             transaction.priceCents = isNaN(price) ? 0 : Math.round(price * 100)
             break
+          }
           case 'txntype':
           case 'txn_type':
           case 'transaction_type':
@@ -78,10 +80,11 @@ function TransactionsCSVUpload({ onTransactionsUploaded }: TransactionsCSVUpload
             break
           case 'txnamount':
           case 'txn_amount':
-          case 'transaction_amount':
+          case 'transaction_amount': {
             const amount = parseFloat(value)
             transaction.txnAmountCents = isNaN(amount) ? 0 : Math.round(amount * 100)
             break
+          }
         }
       })
 
@@ -89,7 +92,7 @@ function TransactionsCSVUpload({ onTransactionsUploaded }: TransactionsCSVUpload
       if (transaction.customer && transaction.orderId && transaction.item && 
           transaction.priceCents !== undefined && transaction.txnType && 
           transaction.txnAmountCents !== undefined) {
-        transactions.push(transaction)
+        transactions.push(transaction as Transaction)
       }
     }
 
