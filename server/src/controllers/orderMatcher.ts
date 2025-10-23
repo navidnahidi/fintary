@@ -6,6 +6,8 @@ import {
   MatchingResult,
 } from '../models/types';
 import { db } from '../models/database';
+import { orderModel } from '../models/order';
+import { transactionModel } from '../models/transaction';
 
 export class OrderTransactionMatcher {
   constructor() {
@@ -111,9 +113,7 @@ export class OrderTransactionMatcher {
    * Reset all matches (for testing)
    */
   public async resetMatches(): Promise<void> {
-    await db.query(
-      'UPDATE transactions SET matched_order_id = NULL, updated_at = CURRENT_TIMESTAMP'
-    );
+    await transactionModel.resetMatches();
   }
 }
 
@@ -128,13 +128,8 @@ export async function runOrderMatchingWithTransactions(
     await matcher.resetMatches();
 
     // Get all orders from database
-    const ordersResult = await db.query(`
-      SELECT id, customer, order_id, order_date, item, price_cents 
-      FROM orders 
-      ORDER BY id
-    `);
-
-    const orders: Order[] = ordersResult.rows.map(row => ({
+    const orderData = await orderModel.getAllOrders();
+    const orders: Order[] = orderData.map(row => ({
       id: row.id,
       customer: row.customer,
       orderId: row.order_id,

@@ -73,6 +73,41 @@ export class TransactionModel {
       errors: errors.length > 0 ? errors : undefined,
     };
   }
+
+  /**
+   * Get unmatched transactions from database
+   */
+  async getUnmatchedTransactions(): Promise<TransactionData[]> {
+    const result = await db.query(`
+      SELECT * FROM transactions 
+      WHERE matched_order_id IS NULL 
+      ORDER BY id
+    `);
+
+    return result.rows as TransactionData[];
+  }
+
+  /**
+   * Update transaction with matched order ID
+   */
+  async updateTransactionMatch(
+    transactionId: number,
+    orderId: number
+  ): Promise<void> {
+    await db.query(
+      'UPDATE transactions SET matched_order_id = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
+      [orderId, transactionId]
+    );
+  }
+
+  /**
+   * Reset all matches (for testing)
+   */
+  async resetMatches(): Promise<void> {
+    await db.query(
+      'UPDATE transactions SET matched_order_id = NULL, updated_at = CURRENT_TIMESTAMP'
+    );
+  }
 }
 
 export const transactionModel = new TransactionModel();
