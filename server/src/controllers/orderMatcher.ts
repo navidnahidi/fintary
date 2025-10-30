@@ -5,9 +5,9 @@ import {
   MatchedOrder,
   MatchingResult,
 } from '../models/types';
-import { db } from '../models/database';
+// Database queries for orders should go through the order model
 import { orderModel } from '../models/order';
-import { transactionModel } from '../models/transaction';
+// Removed transactionModel dependency; we no longer reset matches in DB
 
 export class OrderTransactionMatcher {
   constructor() {
@@ -33,8 +33,8 @@ export class OrderTransactionMatcher {
     }[] = [];
 
     for (const transaction of clientTransactions) {
-      // Use database model to find similar orders
-      const similarOrders = await db.findSimilarOrders(
+      // Use order model to find similar orders
+      const similarOrders = await orderModel.findSimilarOrders(
         transaction.customer,
         0.5
       );
@@ -118,12 +118,7 @@ export class OrderTransactionMatcher {
     };
   }
 
-  /**
-   * Reset all matches (for testing)
-   */
-  public async resetMatches(): Promise<void> {
-    await transactionModel.resetMatches();
-  }
+  // Removed: resetMatches()
 }
 
 // Example of how to use the matcher
@@ -132,8 +127,7 @@ export async function runOrderMatchingWithTransactions(
 ): Promise<MatchingResult> {
   const matcher = new OrderTransactionMatcher();
 
-  // Reset matches for fresh run
-  await matcher.resetMatches();
+  // No DB state reset needed
 
   // Get all orders from database
   const orderData = await orderModel.getAllOrders();

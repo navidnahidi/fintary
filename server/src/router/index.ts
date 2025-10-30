@@ -3,8 +3,8 @@ import Router from '@koa/router';
 import { Context } from 'koa';
 import { runOrderMatchingWithTransactions } from '../controllers/orderMatcher';
 import { ordersController } from '../controllers/orders';
-import { transactionsController } from '../controllers/transactions';
-import { Transaction, OrderInput, TransactionInput } from '../models/types';
+// Removed transactionsController as related endpoints are unused by the client
+import { Transaction, OrderInput } from '../models/types';
 
 const router = new Router();
 
@@ -28,7 +28,7 @@ router.get('/', async (ctx: Context) => {
       health: '/health',
       match: '/v1/match',
       orders: '/v1/orders',
-      transactions: '/v1/transactions',
+      // transactions endpoints removed
     },
   };
 });
@@ -88,27 +88,7 @@ router.post('/v1/orders/bulk', async (ctx: Context) => {
   }
 });
 
-// Bulk insert transactions endpoint
-router.post('/v1/transactions/bulk', async (ctx: Context) => {
-  try {
-    const { transactions } = ctx.request.body as {
-      transactions: TransactionInput[];
-    };
-
-    // Use controller to handle business logic and formatting
-    const result =
-      await transactionsController.bulkInsertTransactions(transactions);
-
-    ctx.body = result;
-  } catch (error) {
-    ctx.status = 500;
-    ctx.body = {
-      success: false,
-      error: 'Internal server error during bulk insert',
-      timestamp: new Date().toISOString(),
-    };
-  }
-});
+// Removed: /v1/transactions/bulk (unused)
 
 // Get orders endpoint with pagination
 router.get('/v1/orders', async (ctx: Context) => {
@@ -186,21 +166,6 @@ router.delete('/v1/orders/:id', async (ctx: Context) => {
   }
 });
 
-// Get transactions endpoint
-router.get('/v1/transactions', async (ctx: Context) => {
-  try {
-    // Use controller to handle business logic and formatting
-    const result = await transactionsController.getTransactions();
-
-    ctx.body = result;
-  } catch (error) {
-    ctx.status = 500;
-    ctx.body = {
-      success: false,
-      error: 'Internal server error',
-      timestamp: new Date().toISOString(),
-    };
-  }
-});
+// Removed: /v1/transactions (unused)
 
 export default router;

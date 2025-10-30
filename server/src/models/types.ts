@@ -57,28 +57,9 @@ export interface PaginatedOrdersResult {
   totalPages: number;
 }
 
-export interface TransactionData {
-  id: number;
-  customer: string;
-  order_id: string;
-  transaction_date: string;
-  item: string;
-  price_cents: number;
-  txn_type: string;
-  txn_amount_cents: number;
-  matched_order_id: number | null;
-}
+// Removed unused transaction-related DB types: TransactionData, TransactionInput
 
-export interface TransactionInput {
-  customer: string;
-  orderId: string;
-  date: string;
-  item: string;
-  priceCents: number;
-  txnType: string;
-  txnAmountCents: number;
-}
-
+// Kept for orders bulk insert result shape
 export interface BulkInsertResult {
   insertedCount: number;
   totalProcessed: number;

@@ -79,44 +79,7 @@ class DatabaseConnection {
     }
   }
 
-  /**
-   * Find orders with similar customer names using PostgreSQL similarity
-   */
-  async findSimilarOrders(
-    customerName: string,
-    threshold: number = 0.5
-  ): Promise<
-    Array<{
-      id: number;
-      customer: string;
-      order_id: string;
-      order_date: string;
-      item: string;
-      price_cents: number;
-      similarity_score: number;
-    }>
-  > {
-    const query = `
-      SELECT 
-        id, customer, order_id, order_date, item, price_cents,
-        similarity(customer, $1) as similarity_score
-      FROM orders 
-      WHERE similarity(customer, $1) >= $2
-      ORDER BY similarity_score DESC
-    `;
-
-    const result = await this.query(query, [customerName, threshold]);
-
-    return result.rows as Array<{
-      id: number;
-      customer: string;
-      order_id: string;
-      order_date: string;
-      item: string;
-      price_cents: number;
-      similarity_score: number;
-    }>;
-  }
+  // Moved findSimilarOrders to order model
 
   /**
    * Close the connection pool
