@@ -1,0 +1,4 @@
+customer,orderId,date,item,price,txnType,txnAmount
+Alex Able,ORD001,2023-01-01,Widget A,12.50,payment,12.50
+Alexis Abe,1B6,2023-01-01,Widget A,12.50,payment,12.50
+Brian Ball,ORD001,2023-01-01,Widget A,12.50,payment,12.50
